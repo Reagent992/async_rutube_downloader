@@ -1,34 +1,34 @@
 import asyncio
 import re
 import time
-from typing import Any, Final
+from typing import Any
 
 import aiofiles
 import m3u8
 from aiohttp import ClientError, ClientSession
 
-from config import CHUNK_SIZE, RUTUBE_API_LINK, VIDEO_ID_REGEX
+from config import CHUNK_SIZE, RUTUBE_API_LINK, VIDEO_ID_REGEX, LINK
 from playlist import MasterPlaylist
-
-LINK: Final = "https://rutube.ru/video/a684a67d21eda3792baf1ec433ab653a/"  # 7 минут  # downloaded for ~43 seconds.
-# LINK: Final = (
-#     "https://rutube.ru/video/940418fbd25740b72410070f540b0cde/"  # 23 минуты
-# )
-# LINK: Final = (
-#     "https://rutube.ru/video/6c58d7354c9a00c9ccfbf7429069ae0b/"  # 41 минуты
-# )
 
 
 async def _get_api_response(
-    session: ClientSession, video_id: str
+    session: ClientSession,
+    video_id: str,
+    max_retries=3,
+    retry_delay=0.5,
 ) -> dict[str, Any]:
-    try:
-        async with session.get(RUTUBE_API_LINK.format(video_id)) as result:
-            result.raise_for_status()
-            return await result.json()
-    except ClientError as e:
-        print(f"Error fetching API response: {e}")
-        raise ClientError
+    for i in range(max_retries):
+        try:
+            async with session.get(
+                RUTUBE_API_LINK.format(video_id), raise_for_status=True
+            ) as result:
+                return await result.json()
+        except ClientError as e:
+            print(f"Error fetching API response: {e}")
+            await asyncio.sleep(retry_delay)
+    raise ClientError(
+        f"Failed to fetch API response after {max_retries} retries"
+    )
 
 
 def extract_video_id(url: str) -> str:
@@ -44,15 +44,26 @@ def extract_title(api_response: dict[str, Any]) -> str:
 
 
 async def _download_segment(
-    session: ClientSession, segment: m3u8.Segment
+    session: ClientSession,
+    segment: m3u8.Segment,
+    max_retries=3,
+    retry_delay=0.5,
 ) -> bytes:
-    try:
-        async with session.get(segment.absolute_uri) as response:
-            response.raise_for_status()
-            return await response.read()
-    except ClientError as e:
-        print(f"Error downloading segment {segment.absolute_uri}: {e}")
-        raise ClientError
+    for i in range(max_retries):
+        try:
+            async with session.get(
+                segment.absolute_uri, raise_for_status=True
+            ) as response:
+                return await response.read()
+        except ClientError as e:
+            print(
+                f"Error downloading segment "
+                f"{segment.absolute_uri} (Attempt {i + 1}): {e}"
+            )
+            await asyncio.sleep(retry_delay)
+    raise ClientError(
+        f"Failed to download segment {segment.absolute_uri} after retries"
+    )
 
 
 async def download_video(
@@ -74,7 +85,7 @@ async def download_video(
                 await file.write(segment_data)
 
 
-async def main(link: str) -> None:
+async def main(link: str = LINK) -> None:
     try:
         id = extract_video_id(link)
         async with ClientSession() as session:
@@ -83,12 +94,13 @@ async def main(link: str) -> None:
             playlist = MasterPlaylist(api_response)
             stream = m3u8.load(playlist.get_best_quality().uri)
             await download_video(stream, session, video_title)
+            print(f"Download completed: {video_title}")
     except Exception as e:
         print(f"Unexpected error during video download: {e}")
 
 
 if __name__ == "__main__":
     start_time = time.time()
-    asyncio.run(main(LINK), debug=True)
+    asyncio.run(main())
     end_time = time.time()
-    print("download time: ", end_time - start_time)
+    print(f"Download completed in {(end_time - start_time) / 60:.2f} minutes")

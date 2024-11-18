@@ -12,3 +12,4 @@ wheels/
 # Test data
 *.mp4
 *.json
+.ruff_cache

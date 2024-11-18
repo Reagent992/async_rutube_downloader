@@ -9,8 +9,9 @@ English / [Russian](./README_RU.md)
 - [aiohttp](https://github.com/aio-libs/aiohttp)
 
 # TODO:
-- [ ] make download stable.
-- [ ] basic refactor.
+- [x] make download stable.
+- [x] basic refactoring.
+- [x] test speed with processing. no improvements.
+- [ ] cli quality choose
+- [ ] "in process" cli output
 - [ ] UI by Tkinter.
-- [ ] depend on free memory download video in memory or on drive.
-- [ ] output about amount of downloaded segments in cli.
