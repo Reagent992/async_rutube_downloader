@@ -6,6 +6,8 @@
 - [aiohttp](https://github.com/aio-libs/aiohttp)
 
 # TODO:
-- [ ] make download stable
-- [ ] refactor
-- [ ] user UI by Tkinter
+- [ ] make download stable.
+- [ ] basic refactor.
+- [ ] UI by Tkinter.
+- [ ] depend on free memory download video in memory or on drive.
+- [ ] output about amount of downloaded segments in cli.
