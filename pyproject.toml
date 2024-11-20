@@ -1,10 +1,58 @@
-[project]
+[tool.poetry]
 name = "rutube-downloader"
 version = "0.1.0"
-description = "Add your description here"
+description = ""
+authors = ["Miron Sadykov <MironSadykov@yandex.ru>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = ["aiofiles>=24.1.0", "aiohttp>=3.11.2", "m3u8>=6.0.0"]
 
-[dependency-groups]
-dev = ["ruff>=0.7.4", "types-aiofiles>=24.1.0.20240626"]
+[tool.poetry.dependencies]
+python = "3.12.*"
+aiofiles = "^24.1.0"
+aiohttp = "^3.11.6"
+m3u8 = "^6.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.7.4"
+types-aiofiles = "^24.1.0.20240626"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+line-length = 79
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/configuration/
+select = ["E", "F", "W", "Q", "I", "ASYNC", "N", "C901"]
