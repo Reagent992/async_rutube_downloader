@@ -36,16 +36,3 @@ class MasterPlaylist:
     def get_best_quality(self) -> m3u8.M3U8:
         # FIXME: There is 2 cdn. Used the first one.
         return self.qualities[max(self.qualities)].pop()
-
-
-# class RegularPlaylist:
-#     def __init__(self, data: m3u8.M3U8) -> None:
-#         self.__playlist = data
-
-#     @property
-#     def playlist(self) -> m3u8.M3U8:
-#         return self.__playlist
-
-#     @playlist.setter
-#     def playlist(self, data: m3u8.M3U8) -> m3u8.M3U8:
-#         self.__playlist = m3u8.load(data)
