@@ -1,10 +1,20 @@
+import asyncio
 import re
-from typing import Type
+from functools import wraps
+from typing import Callable, Type
+
+from aiohttp import ClientError
 
 from config import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
 
 
 class InvalidURLError(Exception): ...
+
+
+class APIResponseError(Exception): ...
+
+
+class NoQualitySelectedError(Exception): ...
 
 
 class UrlDescriptor:
@@ -37,3 +47,32 @@ class UrlDescriptor:
 
     def just_id_validator(self, value: str) -> bool:
         return bool(re.fullmatch(self.id_pattern, value))
+
+
+def retry(
+    exception_text: str,
+    exception_to_raise: Type[Exception] = ClientError,
+    max_retries=3,
+    retry_delay=0.5,
+    retry_on_exception: Type[Exception] = ClientError,
+):
+    """Decorator that call a function multiple times
+    if it raises an exception."""
+
+    def decorator(func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            for _ in range(max_retries):
+                try:
+                    return await func(*args, **kwargs)
+                except retry_on_exception as e:
+                    print(
+                        f"Connection error: {e}\n"
+                        f"Retrying in {retry_delay} seconds..."
+                    )
+                    await asyncio.sleep(retry_delay)
+            raise exception_to_raise(exception_text)
+
+        return wrapper
+
+    return decorator

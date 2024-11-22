@@ -1,38 +1,55 @@
-from typing import Any, TypeAlias
+from typing import Optional, Self, TypeAlias
 
 import m3u8
+from aiohttp import ClientSession
 
-Qualities: TypeAlias = dict[str, list[m3u8.M3U8]]
+Qualities: TypeAlias = dict[tuple[str, str], m3u8.M3U8]
 
 
 class MasterPlaylist:
-    def __init__(self, data: dict[str, Any]) -> None:
-        self.master_playlist = data
+    """This class represents M3U8 playlist."""
+
+    def __init__(
+        self,
+        link_to_master_playlist: str,
+        session: ClientSession,
+    ) -> None:
+        """
+        Args:
+            link_to_master_playlist (str): The URL of the master playlist
+            session (ClientSession): The aiohttp session to use
+                for http the request.
+        """
+        self._link_to_master_playlist = link_to_master_playlist
+        self._session = session
+        self._master_playlist: Optional[m3u8.M3U8] = None
+        self.qualities: Optional[Qualities] = None
+
+    async def _get_master_playlist(self) -> None:
+        response = await self._session.get(self._link_to_master_playlist)
+        self._master_playlist = m3u8.loads(await response.text())
+
+    async def run(self) -> Self:
+        """
+        1. Create object like: MasterPlaylist(api_response, session)
+        2. Call async run() method to make http requests.
+        3. Now you can select video quality.
+        """
+        await self._get_master_playlist()
         self.qualities = self._get_qualities()
-
-    @property
-    def master_playlist(self) -> m3u8.M3U8:
-        return self.__master_playlist
-
-    @master_playlist.setter
-    def master_playlist(self, data: dict[str, Any]) -> m3u8.M3U8:
-        """Retrieve the master m3u8 playlist
-        containing different quality streams."""
-        try:
-            master_playlist_url = data["video_balancer"]["m3u8"]
-            self.__master_playlist = m3u8.load(master_playlist_url)
-        except KeyError:
-            raise KeyError("M3U8 playlist URL not found in API response")
+        return self
 
     def _get_qualities(self) -> Qualities:
+        if not self._master_playlist:
+            raise AttributeError(
+                "Master playlist not loaded. Call run() method first."
+            )
         qualities: Qualities = {}
-        for playlist in self.__master_playlist.playlists:
+        for playlist in self._master_playlist.playlists:
             resolution = playlist.stream_info.resolution
             if resolution not in qualities:
-                qualities[resolution] = []
-            qualities[resolution].append(playlist)
+                qualities[resolution] = playlist
+            # TODO: There are 2 CDNs in the master playlist,
+            #  we can potentially use the second one for retry.
+            # but now just skip it.
         return qualities
-
-    def get_best_quality(self) -> m3u8.M3U8:
-        # FIXME: There is 2 cdn. Used the first one.
-        return self.qualities[max(self.qualities)].pop()
