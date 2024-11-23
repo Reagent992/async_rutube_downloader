@@ -3,7 +3,7 @@ from typing import Optional, Self, TypeAlias
 import m3u8
 from aiohttp import ClientSession
 
-Qualities: TypeAlias = dict[tuple[int, int], m3u8.M3U8]
+Qualities: TypeAlias = dict[tuple[int, int], m3u8.Playlist]
 
 
 class MasterPlaylist:
@@ -47,7 +47,7 @@ class MasterPlaylist:
         qualities: Qualities = {}
         for playlist in self._master_playlist.playlists:
             resolution = playlist.stream_info.resolution
-            if resolution not in qualities:
+            if resolution and resolution not in qualities:
                 qualities[resolution] = playlist
             # TODO: There are 2 CDNs in the master playlist,
             #  we can potentially use the second one for retry.

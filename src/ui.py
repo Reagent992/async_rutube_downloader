@@ -124,28 +124,23 @@ class DownloaderUI(Tk):
         """
         if not self._url_entry.get():
             messagebox.showerror("Error", "Enter URL first")
-        elif (
-            self._download is None
-            and self._upload_directory
-            and self._url_entry.get()
-        ):
-            self._download = Downloader(
-                self._url_entry.get(),
-                self._loop,
-                self._queue_update,
-                upload_directory=self._upload_directory,
-            )
+        elif self._upload_directory and self._url_entry.get():
             try:
+                self._download = Downloader(
+                    self._url_entry.get(),
+                    self._loop,
+                    self._queue_update,
+                    upload_directory=self._upload_directory,
+                )
                 __download_future = self._download.fetch_video_info_from_ui()
                 self._download_available_qualities = __download_future.result()
                 self.__fill_qualities()
                 self.__fill_title()
-            except InvalidURLError:
-                # FIXME: it didn't work, while APIResponseError works fine.
+            except (InvalidURLError, KeyError):
                 self._fetch_result_label.config(text="Invalid URL", fg="red")
             except APIResponseError:
                 self._fetch_result_label.config(
-                    text="RuTube API fail", fg="red"
+                    text="Wrong URL or Connection fail", fg="red"
                 )
 
     def __fill_qualities(self) -> None:
@@ -169,7 +164,11 @@ class DownloaderUI(Tk):
     def __set_quality(self) -> None:
         if self._download:
             dict_key = tuple(map(int, self._dropdown.get().split("x")))
-            # FIXME: typing
+            if len(dict_key) != 2:
+                raise ValueError(
+                    "Invalid quality selected,"
+                    " it must be something like: 1280x720"
+                )
             self._download.select_quality_from_ui(dict_key).result()
 
     def select_folder(self) -> None:

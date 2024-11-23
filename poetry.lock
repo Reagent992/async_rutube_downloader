@@ -652,6 +652,17 @@ files = [
 ]
 
 [[package]]
+name = "types-m3u8"
+version = "6.0.0.20241002"
+description = "Typing stubs for m3u8"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-m3u8-6.0.0.20241002.tar.gz", hash = "sha256:0743a43cd7bf8beaf1b7a04208a0fb110a274ed5096caf54dea8bf25fae536a2"},
+    {file = "types_m3u8-6.0.0.20241002-py3-none-any.whl", hash = "sha256:fa3e0680a51f442cc9b8d294d2597c67ae83fc0edc700275360009236e706636"},
+]
+
+[[package]]
 name = "yarl"
 version = "1.17.2"
 description = "Yet another URL library"
@@ -750,4 +761,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.*"
-content-hash = "25e4cd4da3e314bdf0933522a75a9fc827810c30c36b2ce6e228e1a6f7df9c2a"
+content-hash = "b8d6d5d00304e3b29910bf7fe592cad17b870d99b30357ce61f0bd04f2880f9c"

@@ -18,6 +18,9 @@ class NoQualitySelectedError(Exception): ...
 class APIResponseError(Exception): ...
 
 
+class InvalidPlaylistError(Exception): ...
+
+
 class MasterPlaylistInitializationError(Exception):
     """Exception for rare situation when MasterPlaylist object is created
     but, run method is not called."""

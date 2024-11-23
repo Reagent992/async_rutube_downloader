@@ -13,6 +13,7 @@ from config import CHUNK_SIZE, LINK, RUTUBE_API_LINK, VIDEO_ID_REGEX
 from playlist import MasterPlaylist, Qualities
 from utils import (
     APIResponseError,
+    InvalidPlaylistError,
     InvalidURLError,
     MasterPlaylistInitializationError,
     NoQualitySelectedError,
@@ -108,13 +109,15 @@ class Downloader:
         selected_quality_obj = self._master_playlist.qualities[
             selected_quality
         ]
-        # selected_quality_obj.base_path
-        # doesn't end with "/"" so we need to add it
+        if not selected_quality_obj.uri:
+            raise InvalidPlaylistError("Invalid playlist selected")
         response = await self._session.get(selected_quality_obj.uri)
         self._selected_quality = m3u8.loads(
             await response.text(),
             uri=selected_quality_obj.base_path + "/",
         )
+        # selected_quality_obj.base_path
+        # doesn't end with "/"" so we need to add it
 
     @retry("Failed to fetch API response", APIResponseError)
     async def _get_api_response(self) -> dict[str, Any]:
@@ -201,10 +204,7 @@ class Downloader:
                 "video_balancer"
             ]["m3u8"]
         except KeyError:
-            raise KeyError(
-                "M3U8 playlist URL not found in API response. "
-                "Looks like API response has changed. "
-            )
+            raise KeyError("M3U8 playlist URL not found in API response.")
 
     async def __call_callback(self) -> None:
         """Once we've completed 1% of requests, call
