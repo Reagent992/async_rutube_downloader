@@ -10,7 +10,6 @@ wheels/
 .venv
 
 # Test data
-*.mp4
 *.json
 .ruff_cache
 example.m3u8
