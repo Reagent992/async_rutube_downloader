@@ -16,7 +16,6 @@ from utils import (
     InvalidPlaylistError,
     InvalidURLError,
     MasterPlaylistInitializationError,
-    NoQualitySelectedError,
     UrlDescriptor,
     retry,
 )
@@ -119,6 +118,14 @@ class Downloader:
         # selected_quality_obj.base_path
         # doesn't end with "/"" so we need to add it
 
+    async def __select_best_quality(self) -> None:
+        if not (
+            self._master_playlist is None
+            or self._master_playlist.qualities is None
+        ):
+            max_quality = max(self._master_playlist.qualities.keys())
+            await self._select_quality(max_quality)
+
     @retry("Failed to fetch API response", APIResponseError)
     async def _get_api_response(self) -> dict[str, Any]:
         async with self._session.get(
@@ -137,10 +144,8 @@ class Downloader:
     async def _download_video(self) -> None:
         start_time = time.time()
         if not self._selected_quality:
-            raise NoQualitySelectedError(
-                "You must select a quality before downloading the video"
-            )
-        segments = list(self._selected_quality.segments)
+            await self.__select_best_quality()
+        segments = list(self._selected_quality.segments)  # type: ignore
         self.__amount_of_chunks = len(segments)
         file_name = f"{self.video_title}.mp4"
         self.__refresh_rate = len(segments) // self.__amount_of_chunks
@@ -232,6 +237,6 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     obj = Downloader(LINK, loop)
     loop.run_until_complete(obj._fetch_video_info())
-    loop.run_until_complete(obj._select_quality((1280, 712)))
+    # loop.run_until_complete(obj._select_quality((1280, 712)))
+    loop.run_until_complete(obj._download_video())
     loop.run_until_complete(obj._session.close())
-    # loop.run_until_complete(obj._download_video())

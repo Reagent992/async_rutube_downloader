@@ -12,9 +12,6 @@ class InvalidURLError(Exception):
     """Wrong RuTube URL passed. So there is nothing to download."""
 
 
-class NoQualitySelectedError(Exception): ...
-
-
 class APIResponseError(Exception): ...
 
 
