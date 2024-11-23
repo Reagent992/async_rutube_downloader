@@ -8,10 +8,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 - Simple way: Download executable file from Releases.
 - Hard way: clone repo, install dependencies(poetry), run `main.py`
 
-<video width="798" height="370" controls>
-  <source src="screen_cast.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![screen_cast](screen_cast.gif)
 
 # About
 - This project was created for learning purposes and was inspired by a similar synchronous library and a book about async.
@@ -40,8 +37,10 @@ Small project with one main function - download a video from RuTube(it's a russi
 looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async by aiohttp.
 - [x] timeouts for download.
 - [x] Use only one `ClientSession` in `Downloader`.
+- [ ] russian ui.
+- [ ] fix "invalid url" with http://
 - [ ] cli client("in process" and quality choose.).
 - [ ] Mass download support.
 - [ ] Cancel download (method and button for ui)
 - [ ] Make the UI less ugly.
-- [ ] pypi library
+- [ ] pypi library.

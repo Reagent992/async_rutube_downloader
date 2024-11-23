@@ -8,10 +8,7 @@
 - Легкий вариант: Скачать исполняемый файл в разделе релизы(Releases)
 - Сложный вариант: скопировать репозиторий, установить зависимости(poetry), запустить `main.py`
 
-<video width="798" height="370" controls>
-  <source src="screen_cast.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![screen_cast](screen_cast.gif)
 
 ### О проекте
 - Этот проект был создан в учебных целях и был вдохновлен аналогичной синхронной библиотекой и книгой по асинхронному программированию.
