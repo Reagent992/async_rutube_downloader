@@ -8,13 +8,19 @@ from aiohttp import ClientError
 from config import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
 
 
-class InvalidURLError(Exception): ...
+class InvalidURLError(Exception):
+    """Wrong RuTube URL passed. So there is nothing to download."""
+
+
+class NoQualitySelectedError(Exception): ...
 
 
 class APIResponseError(Exception): ...
 
 
-class NoQualitySelectedError(Exception): ...
+class MasterPlaylistInitializationError(Exception):
+    """Exception for rare situation when MasterPlaylist object is created
+    but, run method is not called."""
 
 
 class UrlDescriptor:

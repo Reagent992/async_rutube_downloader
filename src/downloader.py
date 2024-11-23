@@ -14,6 +14,7 @@ from playlist import MasterPlaylist, Qualities
 from utils import (
     APIResponseError,
     InvalidURLError,
+    MasterPlaylistInitializationError,
     NoQualitySelectedError,
     UrlDescriptor,
     retry,
@@ -33,7 +34,7 @@ class Downloader:
     def __init__(
         self,
         url: str,
-        loop: asyncio.AbstractEventLoop = asyncio.get_event_loop(),
+        loop: asyncio.AbstractEventLoop = asyncio.new_event_loop(),
         callback: Optional[Callable[[int, int], None]] = None,
         upload_directory: Path = Path.cwd(),
     ) -> None:
@@ -55,7 +56,7 @@ class Downloader:
         self._callback = callback
         self._upload_directory = upload_directory
         self._selected_quality: Optional[m3u8.M3U8] = None
-        self._master_playlist: Optional[m3u8.M3U8] = None
+        self._master_playlist: Optional[MasterPlaylist] = None
         self._video_id = self.__extract_id_from_url()
         self._timeout = ClientTimeout(
             total=None,
@@ -71,27 +72,49 @@ class Downloader:
         self.__refresh_rate = 1
         self.__link_to_master_playlist: str = ""
 
-    def fetch_video_info_from_ui(
-        self,
-        loop: asyncio.AbstractEventLoop,
-        # FIXME: looks like there is no need in loop arg,
-        # Same for download_video_from_ui.
-    ) -> Future:
+    def fetch_video_info_from_ui(self) -> Future:
         """
         Fetches information about the video from the Rutube API.
         Fill object with video information.
         """
-        return asyncio.run_coroutine_threadsafe(self._fetch_video_info(), loop)
+        return asyncio.run_coroutine_threadsafe(
+            self._fetch_video_info(), self._loop
+        )
 
-    def download_video_from_ui(
-        self, loop: asyncio.AbstractEventLoop
-    ) -> Future:
+    def download_video_from_ui(self) -> Future:
         """
         Downloads the video from the given URL.
         """
-        return asyncio.run_coroutine_threadsafe(self._download_video(), loop)
+        return asyncio.run_coroutine_threadsafe(
+            self._download_video(), self._loop
+        )
 
-    def choose_quality_from_cli(self): ...  # TODO:
+    def select_quality_from_ui(
+        self, selected_quality: tuple[int, int]
+    ) -> Future:
+        return asyncio.run_coroutine_threadsafe(
+            self._select_quality(selected_quality), self._loop
+        )
+
+    async def _select_quality(self, selected_quality: tuple[int, int]) -> None:
+        self.__validate_selected_quality(selected_quality)
+        if (
+            self._master_playlist is None
+            or self._master_playlist.qualities is None
+        ):
+            raise MasterPlaylistInitializationError(
+                "Master playlist is not initialized, call run() method first"
+            )
+        selected_quality_obj = self._master_playlist.qualities[
+            selected_quality
+        ]
+        # selected_quality_obj.base_path
+        # doesn't end with "/"" so we need to add it
+        response = await self._session.get(selected_quality_obj.uri)
+        self._selected_quality = m3u8.loads(
+            await response.text(),
+            uri=selected_quality_obj.base_path + "/",
+        )
 
     @retry("Failed to fetch API response", APIResponseError)
     async def _get_api_response(self) -> dict[str, Any]:
@@ -131,7 +154,9 @@ class Downloader:
                 await file.writelines(downloaded_segments)
 
         end_time = time.time()
-        self.total_download_duration = round((end_time - start_time) / MINUTE, 1)
+        self.total_download_duration = round(
+            (end_time - start_time) / MINUTE, 1
+        )
         print(
             f"Download completed: {self.video_title}\n"
             f"Download completed in {self.total_download_duration} minutes"
@@ -145,12 +170,20 @@ class Downloader:
         self._master_playlist = await MasterPlaylist(
             self.__link_to_master_playlist, self._session
         ).run()
-        print("Fetched video title:", self.video_title)
-        print(
-            "Qualities:",
-            [f"{x}:{y}" for x, y in self._master_playlist.qualities.keys()],
-        )
-        return self._master_playlist.qualities
+        if self._master_playlist.qualities is not None:
+            print("Fetched video title:", self.video_title)
+            print(
+                "Available qualities:",
+                *[
+                    f"{index} - {key}"
+                    for index, key in enumerate(
+                        self._master_playlist.qualities.keys()
+                    )
+                ],
+                sep="\n",
+            )
+            return self._master_playlist.qualities
+        raise
 
     def __extract_id_from_url(self) -> str:
         if result := re.search(VIDEO_ID_REGEX, self.url):
@@ -183,8 +216,22 @@ class Downloader:
         ):
             self._callback(self.__completed_requests, self.__amount_of_chunks)
 
+    @staticmethod
+    def __validate_selected_quality(selected_quality: tuple[int, int]) -> bool:
+        if not (
+            isinstance(selected_quality, tuple)
+            and isinstance(selected_quality[0], int)
+            and isinstance(selected_quality[1], int)
+            and len(selected_quality) == 2
+        ):
+            raise TypeError("Quality must be a tuple of two strings")
+        return True
+
 
 if __name__ == "__main__":
-    obj = Downloader(LINK)
-    asyncio.run(obj._fetch_video_info())
-    asyncio.run(obj._download_video())
+    loop = asyncio.new_event_loop()
+    obj = Downloader(LINK, loop)
+    loop.run_until_complete(obj._fetch_video_info())
+    loop.run_until_complete(obj._select_quality((1280, 712)))
+    loop.run_until_complete(obj._session.close())
+    # loop.run_until_complete(obj._download_video())

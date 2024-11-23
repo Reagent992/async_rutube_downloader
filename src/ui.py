@@ -4,8 +4,6 @@ from queue import Queue
 from tkinter import Button, Entry, Label, Tk, filedialog, messagebox, ttk
 from typing import Optional
 
-import m3u8
-
 from downloader import Downloader
 from utils import APIResponseError, InvalidURLError
 
@@ -138,9 +136,7 @@ class DownloaderUI(Tk):
                 upload_directory=self._upload_directory,
             )
             try:
-                __download_future = self._download.fetch_video_info_from_ui(
-                    self._loop
-                )
+                __download_future = self._download.fetch_video_info_from_ui()
                 self._download_available_qualities = __download_future.result()
                 self.__fill_qualities()
                 self.__fill_title()
@@ -167,16 +163,14 @@ class DownloaderUI(Tk):
         """Download the video from the given URL."""
         if self._download:
             self.__set_quality()
-            self._download.download_video_from_ui(self._loop)
+            self._download.download_video_from_ui()
             self.after(self._refresh_ms, self._poll_queue)
 
     def __set_quality(self) -> None:
         if self._download:
             dict_key = tuple(map(int, self._dropdown.get().split("x")))
-            # FIXME: it shouldn't be here.
-            self._download._selected_quality = m3u8.load(
-                self._download_available_qualities[dict_key].uri
-            )
+            # FIXME: typing
+            self._download.select_quality_from_ui(dict_key).result()
 
     def select_folder(self) -> None:
         folder = filedialog.askdirectory(title="Select Download Folder")

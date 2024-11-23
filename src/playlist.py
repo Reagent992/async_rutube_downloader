@@ -3,7 +3,7 @@ from typing import Optional, Self, TypeAlias
 import m3u8
 from aiohttp import ClientSession
 
-Qualities: TypeAlias = dict[tuple[str, str], m3u8.M3U8]
+Qualities: TypeAlias = dict[tuple[int, int], m3u8.M3U8]
 
 
 class MasterPlaylist:
