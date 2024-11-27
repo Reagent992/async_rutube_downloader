@@ -9,9 +9,9 @@ import aiofiles
 import m3u8
 from aiohttp import ClientSession, ClientTimeout
 
-from config import CHUNK_SIZE, LINK, RUTUBE_API_LINK, VIDEO_ID_REGEX
-from playlist import MasterPlaylist, Qualities
-from utils import (
+from src.config import CHUNK_SIZE, LINK, RUTUBE_API_LINK, VIDEO_ID_REGEX
+from src.playlist import MasterPlaylist, Qualities
+from src.utils import (
     APIResponseError,
     InvalidPlaylistError,
     InvalidURLError,
