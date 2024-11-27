@@ -37,10 +37,12 @@ Small project with one main function - download a video from RuTube(it's a russi
 looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async by aiohttp.
 - [x] timeouts for download.
 - [x] Use only one `ClientSession` in `Downloader`.
+- [x] fix "invalid url" with http://
+- [ ] tests
 - [ ] russian ui.
-- [ ] fix "invalid url" with http://
 - [ ] cli client("in process" and quality choose.).
 - [ ] Mass download support.
 - [ ] Cancel download (method and button for ui)
 - [ ] Make the UI less ugly.
 - [ ] pypi library.
+- [ ] shorts support

@@ -2,13 +2,13 @@
 RUTUBE_API_LINK = r"https://rutube.ru/api/play/options/{}/?no_404=true&referer=https%253A%252F%252Frutube.ru&pver=v2"
 
 # regex for video id.
-VIDEO_ID_REGEX = r"(?a)(?<=video\/)[\w\d]+"
+VIDEO_ID_REGEX = r"(?a)(?<=video\/)\w+"
 
 # regex for video url validation
 URL_PATTERN = (
-    r"(?a)^(https://rutube\.ru/video/[\w\d]+/)|(rutube\.ru/video/[\w\d]+/?)$"
+    r"(?a)^(https?://rutube\.ru/video/\w+/?)$|^(rutube\.ru/video/\w+/?)$"
 )
-ID_PATTERN = r"(?a)^[\w\d]+$"
+ID_PATTERN = r"(?a)^\w+$"
 URL_FOR_ID_TEMPLATE = "https://rutube.ru/video/{}/"
 
 # Determines how many chunks will be loaded at the same time.
