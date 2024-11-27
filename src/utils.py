@@ -8,17 +8,21 @@ from aiohttp import ClientError
 from config import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
 
 
-class InvalidURLError(Exception):
+class RuTubeDownloaderError(Exception):
+    """Base class for all errors raised by the downloader."""
+
+
+class InvalidURLError(RuTubeDownloaderError):
     """Wrong RuTube URL passed. So there is nothing to download."""
 
 
-class APIResponseError(Exception): ...
+class APIResponseError(RuTubeDownloaderError): ...
 
 
-class InvalidPlaylistError(Exception): ...
+class InvalidPlaylistError(RuTubeDownloaderError): ...
 
 
-class MasterPlaylistInitializationError(Exception):
+class MasterPlaylistInitializationError(RuTubeDownloaderError):
     """Exception for rare situation when MasterPlaylist object is created
     but, run method is not called."""
 
