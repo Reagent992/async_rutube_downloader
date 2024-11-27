@@ -21,16 +21,17 @@ class ThreadedEventLoop(Thread):
         self._loop.run_forever()
 
 
-loop = asyncio.new_event_loop()
+if __name__ == "__main__":
+    loop = asyncio.new_event_loop()
 
-asyncio_thread = ThreadedEventLoop(loop)
-asyncio_thread.start()
-"""
-Start the new thread to run the asyncio event loop in the background.
-"""
+    asyncio_thread = ThreadedEventLoop(loop)
+    asyncio_thread.start()
+    """
+    Start the new thread to run the asyncio event loop in the background.
+    """
 
-app = DownloaderUI(loop)
-"""
-Create the load tester Tkinter application, and start its main event loop.
-"""
-app.mainloop()
+    app = DownloaderUI(loop)
+    """
+    Create the load tester Tkinter application, and start its main event loop.
+    """
+    app.mainloop()

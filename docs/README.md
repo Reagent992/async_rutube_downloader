@@ -38,6 +38,7 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] timeouts for download.
 - [x] Use only one `ClientSession` in `Downloader`.
 - [x] fix "invalid url" with http://
+- [ ] fix "Unclosed connector"
 - [ ] tests
 - [ ] russian ui.
 - [ ] cli client("in process" and quality choose.).

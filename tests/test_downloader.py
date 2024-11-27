@@ -4,8 +4,8 @@ from typing import LiteralString
 import pytest
 
 from config import URL_FOR_ID_TEMPLATE
-from src.downloader import Downloader
-from src.utils import InvalidURLError
+from downloader import Downloader
+from utils import InvalidURLError
 
 
 def test_create_downloader(url: LiteralString) -> None:

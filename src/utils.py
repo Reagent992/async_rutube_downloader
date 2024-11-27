@@ -5,7 +5,7 @@ from typing import Callable, Type
 
 from aiohttp import ClientError
 
-from src.config import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
+from config import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
 
 
 class RuTubeDownloaderError(Exception):

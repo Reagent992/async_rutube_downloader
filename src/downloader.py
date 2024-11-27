@@ -9,9 +9,9 @@ import aiofiles
 import m3u8
 from aiohttp import ClientSession, ClientTimeout
 
-from src.config import CHUNK_SIZE, LINK, RUTUBE_API_LINK, VIDEO_ID_REGEX
-from src.playlist import MasterPlaylist, Qualities
-from src.utils import (
+from config import CHUNK_SIZE, LINK, RUTUBE_API_LINK, VIDEO_ID_REGEX
+from playlist import MasterPlaylist, Qualities
+from utils import (
     APIResponseError,
     InvalidPlaylistError,
     InvalidURLError,
@@ -191,7 +191,7 @@ class Downloader:
                 sep="\n",
             )
             return self._master_playlist.qualities
-        raise
+        raise APIResponseError
 
     def __extract_id_from_url(self) -> str:
         if result := re.search(VIDEO_ID_REGEX, self.url):

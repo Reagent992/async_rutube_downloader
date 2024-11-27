@@ -122,6 +122,7 @@ class DownloaderUI(Tk):
         1. Fetch video info from Rutube API
         2. Fill the UI with available qualities or error message.
         """
+        self._fetch_result_label.config(text="")
         if not self._url_entry.get():
             messagebox.showerror("Error", "Enter URL first")
         elif self._upload_directory and self._url_entry.get():
