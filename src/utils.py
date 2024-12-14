@@ -45,17 +45,17 @@ class UrlDescriptor:
         return getattr(obj, self.private_name, None)
 
     def __set__(self, obj: object, value: str) -> None:
-        if self.full_url_validator(value):
+        if self.is_valid_url(value):
             setattr(obj, self.private_name, value)
-        elif self.just_id_validator(value):
+        elif self.is_valid_id(value):
             setattr(obj, self.private_name, self.url_template.format(value))
         else:
             raise self.exception
 
-    def full_url_validator(self, value: str) -> bool:
+    def is_valid_url(self, value: str) -> bool:
         return bool(re.fullmatch(self.url_pattern, value))
 
-    def just_id_validator(self, value: str) -> bool:
+    def is_valid_id(self, value: str) -> bool:
         return bool(re.fullmatch(self.id_pattern, value))
 
 
