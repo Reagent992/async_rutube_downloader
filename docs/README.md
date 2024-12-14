@@ -38,8 +38,11 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] timeouts for download.
 - [x] Use only one `ClientSession` in `Downloader`.
 - [x] fix "invalid url" with http://
+- [x] long video title breaks UI
+- [x] printable video title and safe-file-name title must be different
 - [ ] fix "Unclosed connector"
 - [ ] tests
+- [ ] add video thumbnail in UI
 - [ ] russian ui.
 - [ ] cli client("in process" and quality choose.).
 - [ ] Mass download support.

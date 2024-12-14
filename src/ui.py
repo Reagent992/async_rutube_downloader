@@ -30,6 +30,7 @@ class DownloaderUI(Tk):
         # Basic configure
         self.title("Rutube Downloader")
         self.geometry("750x300")
+        self.TEXT_WRAP_LENGTH = 450
 
         # Select folder
         self._folder_button = Button(
@@ -37,7 +38,7 @@ class DownloaderUI(Tk):
         )
         self._folder_button.grid(column=1, row=1, padx=10, pady=15)
         self._chosen_folder = Label(
-            self, text="No folder selected", wraplength=400
+            self, text="No folder selected", wraplength=self.TEXT_WRAP_LENGTH
         )
         self._chosen_folder.grid(column=2, row=1, padx=10, pady=15)
 
@@ -62,7 +63,9 @@ class DownloaderUI(Tk):
         # Video title
         self._video_title_static_text = Label(self, text="Video Title:")
         self._video_title_static_text.grid(column=1, row=4, padx=10, pady=10)
-        self._video_title_dynamic = Label(self, text="")
+        self._video_title_dynamic = Label(
+            self, text="", wraplength=self.TEXT_WRAP_LENGTH
+        )
         self._video_title_dynamic.grid(column=2, row=4, padx=10, pady=10)
 
         # Dropdown for qualities

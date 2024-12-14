@@ -52,6 +52,7 @@ class Downloader:
         """
         self.url = url
         self.video_title = "Unknown video"
+        self._filename = "Unknown video"
         self._loop = loop
         self._callback = callback
         self._upload_directory = upload_directory
@@ -128,6 +129,7 @@ class Downloader:
 
     @retry("Failed to fetch API response", APIResponseError)
     async def _get_api_response(self) -> dict[str, Any]:
+        """Actually going to Rutube API and fetching video info by id."""
         async with self._session.get(
             RUTUBE_API_LINK.format(self._video_id)
         ) as result:
@@ -147,7 +149,7 @@ class Downloader:
             await self.__select_best_quality()
         segments = list(self._selected_quality.segments)  # type: ignore
         self.__amount_of_chunks = len(segments)
-        file_name = f"{self.video_title}.mp4"
+        file_name = f"{self._filename}.mp4"
         self.__refresh_rate = len(segments) // self.__amount_of_chunks
 
         async with aiofiles.open(
@@ -174,7 +176,8 @@ class Downloader:
     async def _fetch_video_info(self) -> Qualities:
         self.__api_response = await self._get_api_response()
         self.__extract_link_to_master_playlist()
-        self.video_title = self.__extract_title()
+        self.video_title = self.__api_response.get("title", "Unknown")
+        self._filename = self.__sanitize_video_title()
         self._master_playlist = await MasterPlaylist(
             self.__link_to_master_playlist, self._session
         ).run()
@@ -193,14 +196,14 @@ class Downloader:
             return self._master_playlist.qualities
         raise APIResponseError
 
+    def __sanitize_video_title(self):
+        video_title = self.__api_response.get("title", "Unknown")
+        return re.sub(r"[^\w\-_\. ]", "_", video_title)
+
     def __extract_id_from_url(self) -> str:
         if result := re.search(VIDEO_ID_REGEX, self.url):
             return result.group()
         raise InvalidURLError(f"Invalid Rutube URL: {self.url}")
-
-    def __extract_title(self) -> str:
-        video_title = self.__api_response.get("title", "Unknown")
-        return re.sub(r"[^\w\-_\. ]", "_", video_title)
 
     def __extract_link_to_master_playlist(self) -> None:
         """Extract url to master playlist from API response."""
