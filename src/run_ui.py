@@ -18,6 +18,11 @@ class ThreadedEventLoop(Thread):
         and run forever in this thread."""
 
     def run(self):
+        """
+        There is no target for the thread to run(like Thread(target=foo)),
+        so we override the run method.
+        So, on start, the thread will run the event loop forever.
+        """
         self._loop.run_forever()
 
 
@@ -32,6 +37,6 @@ if __name__ == "__main__":
 
     app = DownloaderUI(loop)
     """
-    Create the load tester Tkinter application, and start its main event loop.
+    Create the Tkinter application, and start its main event loop.
     """
     app.mainloop()

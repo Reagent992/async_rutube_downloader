@@ -7,7 +7,13 @@ Qualities: TypeAlias = dict[tuple[int, int], m3u8.Playlist]
 
 
 class MasterPlaylist:
-    """This class represents M3U8 playlist."""
+    """
+    Used to parse a Master M3U8 playlist into multiple playlists,
+    each corresponding to a different quality level.
+
+    Methods:
+        run(): Makes an API call to retrieve information.
+    """
 
     def __init__(
         self,
