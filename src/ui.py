@@ -1,11 +1,17 @@
+import asyncio
 from asyncio import AbstractEventLoop, new_event_loop
 from pathlib import Path
 from queue import Queue
 from tkinter import Button, Entry, Label, Tk, filedialog, messagebox, ttk
-from typing import Optional
 
-from downloader import Downloader
-from utils import APIResponseError, InvalidURLError
+from downloader import Downloader, QualityError
+from utils.exceptions import (
+    APIResponseError,
+    DownloaderIsNotInitializerError,
+    InvalidURLError,
+    SegmentDownloadError,
+    UploadDirectoryNotSelectedError,
+)
 
 
 class DownloaderUI(Tk):
@@ -23,8 +29,8 @@ class DownloaderUI(Tk):
         self._loop = loop
         self._refresh_ms = 25
         self._queue: Queue = Queue()
-        self._download: Optional[Downloader] = None
-        self._upload_directory: Optional[Path] = None
+        self._download: Downloader | None = None
+        self._upload_directory: Path | None = None
         # Ui elements:
 
         # Basic configure
@@ -37,10 +43,10 @@ class DownloaderUI(Tk):
             self, text="Select Folder", command=self.select_folder
         )
         self._folder_button.grid(column=1, row=1, padx=10, pady=15)
-        self._chosen_folder = Label(
+        self._chosen_directory = Label(
             self, text="No folder selected", wraplength=self.TEXT_WRAP_LENGTH
         )
-        self._chosen_folder.grid(column=2, row=1, padx=10, pady=15)
+        self._chosen_directory.grid(column=2, row=1, padx=10, pady=15)
 
         # URL input
         self._url_label = Label(self, text="Enter Rutube URL:")
@@ -122,7 +128,7 @@ class DownloaderUI(Tk):
 
     def fetch_video_info(self) -> None:
         """
-        1. Fetch video info from Rutube API
+        1. Fetch video info from Rutube API.
         2. Fill the UI with available qualities or error message.
         """
         self._fetch_result_label.config(text="")
@@ -130,14 +136,7 @@ class DownloaderUI(Tk):
             messagebox.showerror("Error", "Enter URL first")
         elif self._upload_directory and self._url_entry.get():
             try:
-                self._download = Downloader(
-                    self._url_entry.get(),
-                    self._loop,
-                    self._queue_update,
-                    upload_directory=self._upload_directory,
-                )
-                __download_future = self._download.fetch_video_info_from_ui()
-                self._download_available_qualities = __download_future.result()
+                self.__fetch_video_info()
                 self.__fill_qualities()
                 self.__fill_title()
             except (InvalidURLError, KeyError):
@@ -146,6 +145,37 @@ class DownloaderUI(Tk):
                 self._fetch_result_label.config(
                     text="Wrong URL or Connection fail", fg="red"
                 )
+            except SegmentDownloadError:
+                self._fetch_result_label.config(
+                    text=(
+                        "Connection fail occurred "
+                        "while downloading segment of video"
+                    ),
+                    fg="red",
+                )
+
+    def __fetch_video_info(self) -> None:
+        """
+        1. Creates a Downloader object in the main thread.
+        2. Executes its `fetch_video_info` method in a separate thread,
+        where an event loop is running.
+
+        Note:
+            - blocks the main thread until gets video info.
+        # TODO: its possible to use more threads to avoid UI blocks.
+        """
+        if not self._upload_directory:
+            raise UploadDirectoryNotSelectedError
+        self._download = Downloader(
+            self._url_entry.get(),
+            self._loop,
+            self._queue_update,
+            upload_directory=self._upload_directory,
+        )
+        download_future = asyncio.run_coroutine_threadsafe(
+            self._download.fetch_video_info(), self._loop
+        )
+        self._download_available_qualities = download_future.result()
 
     def __fill_qualities(self) -> None:
         fields = [
@@ -162,31 +192,39 @@ class DownloaderUI(Tk):
         """Download the video from the given URL."""
         if self._download:
             self.__set_quality()
-            self._download.download_video_from_ui()
+            asyncio.run_coroutine_threadsafe(
+                self._download.download_video(), self._loop
+            )
             self.after(self._refresh_ms, self._poll_queue)
 
     def __set_quality(self) -> None:
-        if self._download:
-            dict_key = tuple(map(int, self._dropdown.get().split("x")))
-            if len(dict_key) != 2:
-                raise ValueError(
-                    "Invalid quality selected,"
-                    " it must be something like: 1280x720"
-                )
-            self._download.select_quality_from_ui(dict_key).result()
+        """
+        Set the quality of the video to download.
+        """
+        if self._download is None:
+            raise DownloaderIsNotInitializerError(
+                "You must initialize Downloader object first."
+            )
+        selected_quality = self.__get_selected_quality()
+        quality_future = asyncio.run_coroutine_threadsafe(
+            self._download.select_quality(selected_quality), self._loop
+        )
+        quality_future.result()
+
+    def __get_selected_quality(self) -> tuple[int, int]:
+        quality = tuple(map(int, self._dropdown.get().split("x")))
+        if len(quality) == 2:
+            return quality
+        raise QualityError("Quality must be a tuple of two integers")
 
     def select_folder(self) -> None:
-        folder = filedialog.askdirectory(title="Select Download Folder")
-        if folder:
-            print(f"Selected folder: {folder}")
-            self._chosen_folder.config(text=folder)
-            self._upload_directory = Path(folder)
-            if not self._upload_directory.is_dir():
-                raise ValueError("Selected folder does not exist")
-            self._download_button.config(state="normal")
-            self._video_info_button.config(state="normal")
-        else:
-            raise ValueError("No folder selected")
+        directory = filedialog.askdirectory(title="Select Download Folder")
+        self._chosen_directory.config(text=directory)
+        self._upload_directory = Path(directory)
+        if not self._upload_directory.is_dir():
+            raise ValueError("Selected folder does not exist")
+        self._download_button.config(state="normal")
+        self._video_info_button.config(state="normal")
 
 
 # Use run_ui.py to start the application
