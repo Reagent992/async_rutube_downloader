@@ -17,9 +17,10 @@
 
 # Используемые библиотеки:
 
-| title                                                     | description                          |
-| --------------------------------------------------------- | ------------------------------------ |
-| [m3u8](https://github.com/globocom/m3u8/)                 | Используется для парсинга плейлистов |
-| [aiohttp](https://github.com/aio-libs/aiohttp)            | асинхронный http клиент              |
-| [aiofiles](https://github.com/Tinche/aiofiles)            | асинхронная работа с файлами         |
-| [PyInstaller](https://github.com/pyinstaller/pyinstaller) | Создание исполняемого файла          |
+| title                                                     | description                               |
+| --------------------------------------------------------- | ----------------------------------------- |
+| [m3u8](https://github.com/globocom/m3u8/)                 | Используется для парсинга плейлистов      |
+| [aiohttp](https://github.com/aio-libs/aiohttp)            | асинхронный http клиент                   |
+| [aiofiles](https://github.com/Tinche/aiofiles)            | асинхронная работа с файлами              |
+| [PyInstaller](https://github.com/pyinstaller/pyinstaller) | Создание исполняемого файла               |
+| [slugify ](https://github.com/un33k/python-slugify)       | Преобразование названия видео в имя файла |

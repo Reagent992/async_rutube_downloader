@@ -9,9 +9,13 @@ wheels/
 # Virtual environments
 .venv
 
+.vscode
+
 # Test data
-*.json
 .ruff_cache
 example.m3u8
 run_ui.spec
 regex test urls.md
+sandbox
+app.log
+.coverage

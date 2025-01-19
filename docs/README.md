@@ -16,17 +16,18 @@ Small project with one main function - download a video from RuTube(it's a russi
 
 # Used libs
 
-| title                                                     | description               |
-| --------------------------------------------------------- | ------------------------- |
-| [m3u8](https://github.com/globocom/m3u8/)                 | Used for playlist parsing |
-| [aiohttp](https://github.com/aio-libs/aiohttp)            | Async http client         |
-| [aiofiles](https://github.com/Tinche/aiofiles)            | async work with files     |
-| [PyInstaller](https://github.com/pyinstaller/pyinstaller) | Create executable files   |
+| title                                                     | description                      |
+| --------------------------------------------------------- | -------------------------------- |
+| [m3u8](https://github.com/globocom/m3u8/)                 | Used for playlist parsing        |
+| [aiohttp](https://github.com/aio-libs/aiohttp)            | Async http client                |
+| [aiofiles](https://github.com/Tinche/aiofiles)            | async work with files            |
+| [PyInstaller](https://github.com/pyinstaller/pyinstaller) | Create executable files          |
+| [slugify ](https://github.com/un33k/python-slugify)       | Convert video title to file name |
 
 # Dev notes
 - Looks like python installed by **UV** doesn't provide **Tkinter** support. So i've switched to **poetry** and **pyenv** python version.
 
-## TODO:
+## TODO
 
 - [x] Make a download stable.
 - [x] basic refactoring.
@@ -40,7 +41,7 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] fix "invalid url" with http://
 - [x] long video title breaks UI
 - [x] printable video title and safe-file-name title must be different
-- [ ] fix "Unclosed connector"
+- [x] fix "Unclosed connector"
 - [ ] tests
 - [ ] add video thumbnail in UI
 - [ ] russian ui.

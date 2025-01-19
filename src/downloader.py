@@ -3,14 +3,15 @@ import re
 import time
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Final
 
 import aiofiles
 import m3u8
-from aiohttp import ClientSession, ClientTimeout
+from aiohttp import ClientSession
+from slugify import slugify
 
-from config import CHUNK_SIZE, RUTUBE_API_LINK, VIDEO_ID_REGEX
 from playlist import MasterPlaylist, Qualities
+from settings import CHUNK_SIZE, MINUTE, RUTUBE_API_LINK, VIDEO_ID_REGEX
+from utils.create_session import create_aiohttp_session
 from utils.decorators import retry
 from utils.descriptors import UrlDescriptor
 from utils.exceptions import (
@@ -22,8 +23,8 @@ from utils.exceptions import (
     SegmentDownloadError,
 )
 from utils.logger import get_logger
+from utils.type_hints import APIResponseDict
 
-MINUTE: Final = 60
 logger = get_logger(__name__)
 
 
@@ -64,33 +65,25 @@ class Downloader:
         self._selected_quality: m3u8.M3U8 | None = None
         self._master_playlist: MasterPlaylist | None = None
         self._video_id = self.__extract_id_from_url()
-        if not session:
-            __session_timeout = ClientTimeout(
-                total=None,
-                connect=10,
-                sock_connect=10,
-                sock_read=MINUTE,
-            )
-            self._session = ClientSession(
-                loop=self._loop,
-                timeout=__session_timeout,
-                raise_for_status=True,
-            )
-        else:
-            self._session = session
+        self._session = (
+            session if session else create_aiohttp_session(self._loop)
+        )
+        self.__api_response: APIResponseDict | None = None
         self.__amount_of_chunks = 0
         self.__completed_requests = 0
         self.__refresh_rate = 1
-        self.__link_to_master_playlist: str = ""
+        self.__master_playlist_url: str = ""
 
     async def fetch_video_info(self) -> Qualities:
         """Fetch video info from Rutube API."""
         self.__api_response = await self._get_api_response()
-        self.__extract_master_playlist_url()
+        self.__master_playlist_url = self.__extract_master_playlist_url(
+            self.__api_response
+        )
         self.video_title = self.__api_response.get("title", "Unknown")
-        self._filename = self.__sanitize_video_title()
+        self._filename = self.__sanitize_video_title(self.__api_response)
         self._master_playlist = await MasterPlaylist(
-            self.__link_to_master_playlist, self._session
+            self.__master_playlist_url, self._session
         ).run()
         if self._master_playlist.qualities is not None:
             return self._master_playlist.qualities
@@ -117,11 +110,11 @@ class Downloader:
         ]
         if not selected_quality_obj.uri:
             raise InvalidPlaylistError("Invalid playlist selected")
-        response = await self._session.get(selected_quality_obj.uri)
-        self._selected_quality = m3u8.loads(
-            await response.text(),
-            uri=selected_quality_obj.base_path + "/",
-        )
+        async with self._session.get(selected_quality_obj.uri) as response:
+            self._selected_quality = m3u8.loads(
+                await response.text(),
+                uri=selected_quality_obj.base_path + "/",
+            )
         # selected_quality_obj.base_path
         # doesn't end with "/"" so we need to add it
 
@@ -159,10 +152,8 @@ class Downloader:
             (end_time - start_time) / MINUTE, 1
         )
         logger.info(
-            (
-                f"Downloaded {self.video_title} in "
-                f"{self.total_download_duration} minutes"
-            )
+            f"Downloaded {self.video_title} in "
+            f"{self.total_download_duration} minutes"
         )
         await self.close()
 
@@ -170,16 +161,8 @@ class Downloader:
         if not self._session.closed:
             await self._session.close()
 
-    async def __select_best_quality(self) -> None:
-        if not (
-            self._master_playlist is None
-            or self._master_playlist.qualities is None
-        ):
-            max_quality = max(self._master_playlist.qualities.keys())
-            await self.select_quality(max_quality)
-
     @retry("Failed to fetch API response", APIResponseError)
-    async def _get_api_response(self) -> dict[str, Any]:
+    async def _get_api_response(self) -> APIResponseDict:
         """Actually going to Rutube API and fetching video info by id."""
         async with self._session.get(
             RUTUBE_API_LINK.format(self._video_id)
@@ -194,21 +177,29 @@ class Downloader:
                 await self.__call_callback()
             return await response.read()
 
-    def __sanitize_video_title(self) -> str:
-        video_title = self.__api_response.get("title", "Unknown")
-        return re.sub(r"[^\w\-_\. ]", "_", video_title)
+    async def __select_best_quality(self) -> None:
+        if not (
+            self._master_playlist is None
+            or self._master_playlist.qualities is None
+        ):
+            max_quality = max(self._master_playlist.qualities.keys())
+            await self.select_quality(max_quality)
+
+    def __sanitize_video_title(self, api_response: APIResponseDict) -> str:
+        result = slugify(api_response.get("title", "Unknown"), separator="_")
+        return result if result else "Unknown"
 
     def __extract_id_from_url(self) -> str:
         if self.url and (result := re.search(VIDEO_ID_REGEX, self.url)):
             return result.group()
         raise InvalidURLError(f"Invalid Rutube URL: {self.url}")
 
-    def __extract_master_playlist_url(self) -> None:
+    def __extract_master_playlist_url(
+        self, api_response: APIResponseDict
+    ) -> str:
         """Extract url to master playlist from API response."""
         try:
-            self.__link_to_master_playlist = self.__api_response[
-                "video_balancer"
-            ]["m3u8"]
+            return api_response["video_balancer"]["m3u8"]
         except KeyError:
             raise KeyError("M3U8 playlist URL not found in API response.")
 
@@ -226,9 +217,8 @@ class Downloader:
     def __validate_selected_quality(selected_quality: tuple[int, int]) -> bool:
         if not (
             isinstance(selected_quality, tuple)
-            and isinstance(selected_quality[0], int)
-            and isinstance(selected_quality[1], int)
             and len(selected_quality) == 2
+            and all(isinstance(i, int) for i in selected_quality)
         ):
-            raise QualityError("Quality must be a tuple of two strings")
+            raise QualityError("Quality must be a tuple of two integers.")
         return True

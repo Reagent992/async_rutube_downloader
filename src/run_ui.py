@@ -9,7 +9,7 @@ class ThreadedEventLoop(Thread):
     """We create a new thread class
     to run the asyncio event loop forever inside."""
 
-    def __init__(self, loop: AbstractEventLoop):
+    def __init__(self, loop: AbstractEventLoop) -> None:
         super().__init__()
         self._loop = loop
         self.daemon = True
@@ -17,7 +17,7 @@ class ThreadedEventLoop(Thread):
         because the asyncio event loop will block
         and run forever in this thread."""
 
-    def run(self):
+    def run(self) -> None:
         """
         There is no target for the thread to run(like Thread(target=foo)),
         so we override the run method.

@@ -5,10 +5,12 @@ from queue import Queue
 from tkinter import Button, Entry, Label, Tk, filedialog, messagebox, ttk
 
 from downloader import Downloader, QualityError
+from utils.create_session import create_aiohttp_session
 from utils.exceptions import (
     APIResponseError,
     DownloaderIsNotInitializerError,
     InvalidURLError,
+    MasterPlaylistInitializationError,
     SegmentDownloadError,
     UploadDirectoryNotSelectedError,
 )
@@ -27,6 +29,7 @@ class DownloaderUI(Tk):
     ) -> None:
         super().__init__(*args, **kwargs)
         self._loop = loop
+        self._session = create_aiohttp_session(self._loop)
         self._refresh_ms = 25
         self._queue: Queue = Queue()
         self._download: Downloader | None = None
@@ -103,8 +106,8 @@ class DownloaderUI(Tk):
             messagebox.showinfo(
                 "Download Complete",
                 "Download Complete",
-            )  #  a Download Complete" alert show
-            # a little bit before last downloaded chunks is actually saved.
+            )  #  FIXME: A "Download Complete" alert is shown
+            # a little bit before the last downloaded chunk is actually saved.
             self._download = None
         else:
             self._progress_bar["value"] = progress_bar_value
@@ -141,7 +144,7 @@ class DownloaderUI(Tk):
                 self.__fill_title()
             except (InvalidURLError, KeyError):
                 self._fetch_result_label.config(text="Invalid URL", fg="red")
-            except APIResponseError:
+            except (APIResponseError, MasterPlaylistInitializationError):
                 self._fetch_result_label.config(
                     text="Wrong URL or Connection fail", fg="red"
                 )
@@ -170,7 +173,8 @@ class DownloaderUI(Tk):
             self._url_entry.get(),
             self._loop,
             self._queue_update,
-            upload_directory=self._upload_directory,
+            self._upload_directory,
+            self._session,
         )
         download_future = asyncio.run_coroutine_threadsafe(
             self._download.fetch_video_info(), self._loop

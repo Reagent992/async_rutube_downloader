@@ -1,6 +1,6 @@
 import re
 
-from config import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
+from settings import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
 from utils.exceptions import InvalidURLError
 
 
@@ -9,16 +9,16 @@ class UrlDescriptor:
     Descriptor for validating and storing a Rutube video URL.
     """
 
-    def __init__(self, exception=InvalidURLError) -> None:
+    def __init__(self, exception: type[Exception] = InvalidURLError) -> None:
         self.exception = exception
         self.id_pattern = ID_PATTERN
         self.url_pattern = URL_PATTERN
         self.url_template = URL_FOR_ID_TEMPLATE
 
-    def __set_name__(self, owner: type[object], name: str):
+    def __set_name__(self, owner: type[object], name: str) -> None:
         self.private_name = f"_{owner.__name__}__{name}"
 
-    def __get__(self, obj: object, objtype=None):
+    def __get__(self, obj: object, objtype=None) -> str | None:
         return getattr(obj, self.private_name, None)
 
     def __set__(self, obj: object, value: str) -> None:

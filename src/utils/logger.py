@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-from config import DEBUG
+from settings import DEBUG
 
 logging.basicConfig(
     format="%(asctime)s:%(name)s:%(levelname)s:line %(lineno)d:%(message)s",

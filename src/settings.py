@@ -1,23 +1,28 @@
-# RuTube api link.
-RUTUBE_API_LINK = r"https://rutube.ru/api/play/options/{}/?no_404=true&referer=https%253A%252F%252Frutube.ru&pver=v2"
+from typing import Final
 
+# Constants
+MINUTE: Final = 60
+RUTUBE_API_LINK: Final = r"https://rutube.ru/api/play/options/{}/?no_404=true&referer=https%253A%252F%252Frutube.ru&pver=v2"
 # regex for video id.
-VIDEO_ID_REGEX = r"(?a)(?<=video\/)\w+"
-
+VIDEO_ID_REGEX: Final = r"(?a)(?<=video\/)\w+"
 # regex for video url validation
-URL_PATTERN = (
+URL_PATTERN: Final = (
     r"(?a)^(https?://rutube\.ru/video/\w+/?)$|^(rutube\.ru/video/\w+/?)$"
 )
-ID_PATTERN = r"(?a)^\w+$"
-URL_FOR_ID_TEMPLATE = "https://rutube.ru/video/{}/"
-
+ID_PATTERN: Final = r"(?a)^\w+$"
+URL_FOR_ID_TEMPLATE: Final = "https://rutube.ru/video/{}/"
 # Determines how many chunks will be loaded at the same time.
-CHUNK_SIZE = 20
+CHUNK_SIZE: Final = 20
+
+
+# Application Settings
+# Configures log level, while `DEBUG = True` print debug messages.
+DEBUG = True
 
 
 # Links to download. Used for testing purposes.
 # 1 minutes long
-LINK = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+TEST_VIDEO_URL = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
 # LINK = "2ce725b3dc1a243f8456458975ecd872"  # same, but only id
 # downloaded for ~7 seconds
 
