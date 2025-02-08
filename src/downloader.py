@@ -10,7 +10,13 @@ from aiohttp import ClientSession
 from slugify import slugify
 
 from playlist import MasterPlaylist, Qualities
-from settings import CHUNK_SIZE, MINUTE, RUTUBE_API_LINK, VIDEO_ID_REGEX
+from settings import (
+    CHUNK_SIZE,
+    MINUTE,
+    RUTUBE_API_LINK,
+    TEST_VIDEO_URL,
+    VIDEO_ID_REGEX,
+)
 from utils.create_session import create_aiohttp_session
 from utils.decorators import retry
 from utils.descriptors import UrlDescriptor
@@ -110,13 +116,9 @@ class Downloader:
         ]
         if not selected_quality_obj.uri:
             raise InvalidPlaylistError("Invalid playlist selected")
-        async with self._session.get(selected_quality_obj.uri) as response:
-            self._selected_quality = m3u8.loads(
-                await response.text(),
-                uri=selected_quality_obj.base_path + "/",
-            )
-        # selected_quality_obj.base_path
-        # doesn't end with "/"" so we need to add it
+        self._selected_quality = await self.__get_selected_quality(
+            selected_quality_obj.uri
+        )
 
     async def download_video(self) -> None:
         """
@@ -128,10 +130,13 @@ class Downloader:
         and downloads each segment concurrently. The downloaded segments are
         then written to a file in the specified upload directory.
         """
+        if self._master_playlist is None:
+            raise MasterPlaylistInitializationError
         start_time = time.time()
         if self._selected_quality is None:
             await self.__select_best_quality()
-        segments = list(self._selected_quality.segments)  # type: ignore
+        assert self._selected_quality
+        segments = self._selected_quality.segments
         self.__amount_of_chunks = len(segments)
         file_name = f"{self._filename}.mp4"
         self.__refresh_rate = len(segments) // self.__amount_of_chunks
@@ -222,3 +227,20 @@ class Downloader:
         ):
             raise QualityError("Quality must be a tuple of two integers.")
         return True
+
+    @retry("Failed to fetch API response", APIResponseError)
+    async def __get_selected_quality(self, quality_url: str) -> m3u8.M3U8:
+        async with self._session.get(quality_url) as response:
+            return m3u8.loads(await response.text(), quality_url)
+
+
+if __name__ == "__main__":
+
+    async def main(loop):
+        downloader = Downloader(TEST_VIDEO_URL, loop=loop)
+        await downloader.fetch_video_info()
+        # await downloader.select_quality((1920, 1080))
+        await downloader.download_video()
+
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(main(loop))

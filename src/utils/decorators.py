@@ -52,6 +52,7 @@ def retry(
                         f"Retrying in {retry_delay} seconds..."
                     )
                     await asyncio.sleep(retry_delay)
+            logger.info(f"Failed to connect after {max_retries} attempts.")
             raise exception_to_raise(exception_text)
 
         return wrapper  # type: ignore

@@ -48,8 +48,7 @@ class MasterPlaylist:
     )
     async def __get_master_playlist(self) -> m3u8.M3U8:
         async with self._session.get(self._master_playlist_url) as response:
-            # TODO: Should i pass uri in loads here?
-            return m3u8.loads(await response.text())
+            return m3u8.loads(await response.text(), self._master_playlist_url)
 
     def __get_qualities(self) -> Qualities:
         if not self._master_playlist:

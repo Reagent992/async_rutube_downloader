@@ -1,21 +1,149 @@
 import asyncio
-from typing import LiteralString
+from pathlib import Path
+from typing import Any
+from unittest.mock import AsyncMock, patch
 
+import aiofiles
+import m3u8
 import pytest
+from m3u8 import M3U8
 
-from config import URL_FOR_ID_TEMPLATE
 from downloader import Downloader
-from utils import InvalidURLError
+from settings import TEST_VIDEO_ID, URL_FOR_ID_TEMPLATE, FULL_HD_1080p
+from tests.test_utils import validate_qualities
+from utils.exceptions import (
+    InvalidURLError,
+    MasterPlaylistInitializationError,
+    QualityError,
+)
+from utils.type_hints import APIResponseDict, Qualities
+
+# There is few protected methods calls, through mangled names,
+# it's not a good practice.
 
 
-def test_create_downloader(url: LiteralString) -> None:
+@pytest.mark.asyncio
+async def test_download_video(
+    downloader: Downloader, video_file_playlist_fixture: str
+) -> None:
+    prev_get_calls = 2  # fetch_video_info and MasterPlaylist
+    await downloader.fetch_video_info()
+    # FIXME: why is this necessary? autoselect_quality should do it.
+    downloader._selected_quality = m3u8.loads(
+        video_file_playlist_fixture, downloader.url
+    )
+    with patch.object(aiofiles, "open") as aiofiles_open:
+        await downloader.download_video()
+        aiofiles_open.assert_called_once_with(
+            Path.cwd() / f"{downloader._filename}.mp4", mode="wb"
+        )
+        assert (
+            downloader._session.get.call_count  # type: ignore
+            == len(downloader._selected_quality.segments) + prev_get_calls
+        )
+        assert downloader.total_download_duration
+
+
+@pytest.mark.asyncio
+async def test_download_video_raises_error(downloader: Downloader) -> None:
+    with pytest.raises(MasterPlaylistInitializationError):
+        await downloader.download_video()
+
+
+@pytest.mark.asyncio
+async def test_select_quality(downloader: Downloader) -> None:
+    qualities: Qualities = await downloader.fetch_video_info()
+    first_quality = next(iter(qualities))
+    assert downloader._selected_quality is None
+    await downloader.select_quality(first_quality)
+    assert isinstance(downloader._selected_quality, M3U8)
+
+
+@pytest.mark.asyncio
+async def test_select_quality_raise_error_master_playlist_not_initialized(
+    downloader: Downloader,
+) -> None:
+    with pytest.raises(MasterPlaylistInitializationError):
+        await downloader.select_quality(FULL_HD_1080p)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [("1920", "1080"), (list(), list()), (dict(), dict()), (object, object)],
+)
+@pytest.mark.asyncio
+async def test_validate_selected_quality(
+    value: tuple[Any, Any], downloader: Downloader
+) -> None:
+    with pytest.raises(QualityError):
+        await downloader.select_quality(value)
+
+
+@pytest.mark.asyncio
+async def test_fetch_video_info(downloader: Downloader) -> None:
+    result = await downloader.fetch_video_info()
+    assert validate_qualities(result)
+
+
+@pytest.mark.parametrize(
+    "video_title, expected",
+    [
+        ("Test Video", "test_video"),
+        ("Test Video  -  123", "test_video_123"),
+        ("Test Video  -  123  ...", "test_video_123"),
+        ("!", "Unknown"),
+        ("?", "Unknown"),
+        (" ", "Unknown"),
+        ("   ", "Unknown"),
+        ("видео", "video"),
+    ],
+)
+def test_sanitize_video_title(
+    downloader: Downloader,
+    video_title: str,
+    expected: str,
+    api_response_fixture: APIResponseDict,
+) -> None:
+    api_response_fixture["title"] = video_title
+    assert (
+        downloader._Downloader__sanitize_video_title(api_response_fixture)  # type: ignore
+        == expected
+    )
+
+
+def test_extract_master_playlist_url(
+    api_response_fixture: APIResponseDict, downloader: Downloader
+) -> None:
+    with pytest.raises(
+        KeyError, match="M3U8 playlist URL not found in API response."
+    ):
+        downloader._Downloader__extract_master_playlist_url(  # type: ignore
+            {"invalid_key": "invalid_value"}
+        )
+    assert (
+        downloader._Downloader__extract_master_playlist_url(  # type: ignore
+            api_response_fixture
+        )
+        == api_response_fixture["video_balancer"]["m3u8"]
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_api_response(
+    downloader: Downloader, api_response_fixture: APIResponseDict
+) -> None:
+    assert await downloader._get_api_response() == api_response_fixture
+
+
+@pytest.mark.asyncio
+async def test_create_downloader(url: str, mocked_session: AsyncMock) -> None:
     """Create correct Downloader object."""
 
     def dummy_callback(arg: int, arg2: int): ...
 
     loop = asyncio.new_event_loop()
 
-    obj = Downloader(url, loop, dummy_callback)
+    obj = Downloader(url, loop, dummy_callback, session=mocked_session)
 
     assert isinstance(obj, Downloader)
     assert obj.url == url
@@ -27,6 +155,8 @@ def test_create_downloader(url: LiteralString) -> None:
     "wrong_url",
     [
         "",
+        " ",
+        "\n",
         "/",
         "ےے",
         "їј",
@@ -37,6 +167,13 @@ def test_create_downloader(url: LiteralString) -> None:
         "èéêëì",
         "абв",
         "ÎÏÐÑÒÓÔ",
+        # TODO: "http", and "https", match as the ID.
+        # I do not know how short the ID can be .
+        "http:",
+        "http:/",
+        "http://",
+        "https:",
+        "https:/",
         "https://",
         "https://rutube.ru/",
         "https://rutube.ru/video/",
@@ -59,13 +196,13 @@ def test_create_downloader(url: LiteralString) -> None:
     ],
 )
 def test_create_downloader_with_invalid_url(
-    wrong_url: str,
+    wrong_url: str, mocked_session: AsyncMock
 ) -> None:
     """
     Test that creating Downloader object with invalid url raises an error.
     """
     with pytest.raises(InvalidURLError):
-        Downloader(wrong_url)
+        Downloader(wrong_url, session=mocked_session)
 
 
 @pytest.mark.parametrize(
@@ -80,17 +217,20 @@ def test_create_downloader_with_invalid_url(
     ],
 )
 def test_downloader_created_with_valid_url(
-    valid_url: str,
+    valid_url: str, mocked_session: AsyncMock
 ) -> None:
     """
-    Test that creating Downloader object with valid url does not raise an error.
+    Test that creating Downloader object with valid url
+    does not raise an error.
     """
-    assert Downloader(valid_url).url == valid_url
+    assert Downloader(valid_url, session=mocked_session).url == valid_url
 
 
-def test_downloader_created_with_id() -> None:
+def test_downloader_created_with_id(mocked_session: AsyncMock) -> None:
     """
-    Test that creating Downloader object with valid url does not raise an error.
+    Test that creating Downloader object with valid url
+    does not raise an error.
     """
-    video_id = "2ce725b3dc1a243f8456458975ecd872"
-    assert Downloader(video_id).url == URL_FOR_ID_TEMPLATE.format(video_id)
+    assert Downloader(
+        TEST_VIDEO_ID, session=mocked_session
+    ).url == URL_FOR_ID_TEMPLATE.format(TEST_VIDEO_ID)

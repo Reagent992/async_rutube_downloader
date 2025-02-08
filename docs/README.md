@@ -42,7 +42,7 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] long video title breaks UI
 - [x] printable video title and safe-file-name title must be different
 - [x] fix "Unclosed connector"
-- [ ] tests
+- [x] tests
 - [ ] add video thumbnail in UI
 - [ ] russian ui.
 - [ ] cli client("in process" and quality choose.).

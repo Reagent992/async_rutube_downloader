@@ -13,7 +13,8 @@ ID_PATTERN: Final = r"(?a)^\w+$"
 URL_FOR_ID_TEMPLATE: Final = "https://rutube.ru/video/{}/"
 # Determines how many chunks will be loaded at the same time.
 CHUNK_SIZE: Final = 20
-
+FULL_HD_1080p: Final = (1920, 1080)
+HD_720p: Final = (1280, 720)
 
 # Application Settings
 # Configures log level, while `DEBUG = True` print debug messages.
@@ -22,7 +23,8 @@ DEBUG = True
 
 # Links to download. Used for testing purposes.
 # 1 minutes long
-TEST_VIDEO_URL = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+TEST_VIDEO_URL: Final = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+TEST_VIDEO_ID: Final = "2ce725b3dc1a243f8456458975ecd872"
 # LINK = "2ce725b3dc1a243f8456458975ecd872"  # same, but only id
 # downloaded for ~7 seconds
 
