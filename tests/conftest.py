@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, create_autospec
 import pytest
 from aiohttp import ClientSession
 
-from downloader import Downloader
-from utils.type_hints import APIResponseDict
+from src.downloader import Downloader
+from src.utils.type_hints import APIResponseDict
 
 RUTUBE_LINK = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
 API_RESPONSE_FIXTURE = Path("tests/fixtures/api_response_fixture.json")

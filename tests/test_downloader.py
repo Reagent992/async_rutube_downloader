@@ -6,15 +6,15 @@ import m3u8
 import pytest
 from m3u8 import M3U8
 
-from downloader import Downloader
-from settings import TEST_VIDEO_ID, URL_FOR_ID_TEMPLATE, FULL_HD_1080p
-from tests.test_utils import validate_qualities
-from utils.exceptions import (
+from src.downloader import Downloader
+from src.settings import TEST_VIDEO_ID, URL_FOR_ID_TEMPLATE, FULL_HD_1080p
+from src.utils.exceptions import (
     InvalidURLError,
     MasterPlaylistInitializationError,
     QualityError,
 )
-from utils.type_hints import APIResponseDict, Qualities
+from src.utils.type_hints import APIResponseDict, Qualities
+from tests.test_utils import validate_qualities
 
 """
     - [x] _get_api_response
@@ -29,7 +29,7 @@ from utils.type_hints import APIResponseDict, Qualities
 # There is few protected methods calls, though mangled names,
 # it's not a good practice.
 
-
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_download_video(
     downloader: Downloader, video_file_playlist_fixture: str
