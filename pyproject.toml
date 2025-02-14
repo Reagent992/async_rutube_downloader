@@ -71,3 +71,6 @@ select = ["E", "F", "W", "Q", "I", "ASYNC", "N", "C901"]
 pythonpath = ["src"]
 asyncio_default_fixture_loop_scope = "function"
 addopts = ["-s", "-v", "--lf"]
+
+[tool.pyright]
+extraPaths = ["src"]
