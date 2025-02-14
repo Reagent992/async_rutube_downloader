@@ -4,9 +4,9 @@ import pytest
 from m3u8 import M3U8
 
 from src.playlist import MasterPlaylist
-from src.utils.exceptions import MasterPlaylistInitializationError
-from src.utils.type_hints import APIResponseDict
 from tests.test_utils import validate_qualities
+from utils.exceptions import MasterPlaylistInitializationError
+from utils.type_hints import APIResponseDict
 
 
 @pytest.mark.asyncio
