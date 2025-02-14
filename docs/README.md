@@ -24,6 +24,9 @@ Small project with one main function - download a video from RuTube(it's a russi
 | [PyInstaller](https://github.com/pyinstaller/pyinstaller) | Create executable files          |
 | [slugify ](https://github.com/un33k/python-slugify)       | Convert video title to file name |
 
+# Dev notes
+- Looks like python installed by **UV** doesn't provide **Tkinter** support. So i've switched to **poetry** and **pyenv** python version.
+
 ## TODO
 
 - [x] Make a download stable.
