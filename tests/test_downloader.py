@@ -1,7 +1,9 @@
 import asyncio
+from pathlib import Path
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
+import aiofiles
 import m3u8
 import pytest
 from m3u8 import M3U8
@@ -16,17 +18,7 @@ from utils.exceptions import (
 )
 from utils.type_hints import APIResponseDict, Qualities
 
-"""
-    - [x] _get_api_response
-    - [x] __extract_master_playlist_url
-    - [x] __sanitize_video_title
-    - [x] MasterPlaylist
-    - [x] Downloader.fetch_video_info
-    - [x] Downloader.select_quality
-    - [x] Downloader.__validate_selected_quality
-    - [ ] Downloader.download_video
-"""
-# There is few protected methods calls, though mangled names,
+# There is few protected methods calls, through mangled names,
 # it's not a good practice.
 
 
@@ -34,13 +26,22 @@ from utils.type_hints import APIResponseDict, Qualities
 async def test_download_video(
     downloader: Downloader, video_file_playlist_fixture: str
 ) -> None:
+    prev_get_calls = 2  # fetch_video_info and MasterPlaylist
     await downloader.fetch_video_info()
-    # await downloader.select_quality()
+    # FIXME: why is this necessary? autoselect_quality should do it.
     downloader._selected_quality = m3u8.loads(
-        video_file_playlist_fixture,
-        # FIXME: pass url here
+        video_file_playlist_fixture, downloader.url
     )
-    await downloader.download_video()
+    with patch.object(aiofiles, "open") as aiofiles_open:
+        await downloader.download_video()
+        aiofiles_open.assert_called_once_with(
+            Path.cwd() / f"{downloader._filename}.mp4", mode="wb"
+        )
+        assert (
+            downloader._session.get.call_count  # type: ignore
+            == len(downloader._selected_quality.segments) + prev_get_calls
+        )
+        assert downloader.total_download_duration
 
 
 @pytest.mark.asyncio
@@ -233,53 +234,3 @@ def test_downloader_created_with_id(mocked_session: AsyncMock) -> None:
     assert Downloader(
         TEST_VIDEO_ID, session=mocked_session
     ).url == URL_FOR_ID_TEMPLATE.format(TEST_VIDEO_ID)
-
-
-# Ниженаписанное сгенерированно копайлотом
-# @pytest.mark.asyncio
-# async def test_download_video(downloader: Downloader, mocker) -> None:
-#     mocker.patch.object(downloader, '_Downloader__select_best_quality', return_value=None)
-#     mocker.patch.object(downloader, '_selected_quality', new_callable=mocker.PropertyMock)
-#     mocker.patch.object(downloader, '_download_segment', return_value=b'segment_data')
-#     mocker.patch('aiofiles.open', new_callable=mocker.mock_open)
-
-#     downloader._selected_quality.segments = [m3u8.Segment(uri=f"http://example.com/segment{i}.ts") for i in range(10)]
-#     downloader._filename = "test_video"
-
-#     await downloader.download_video()
-
-#     aiofiles.open.assert_called_once_with(downloader._upload_directory / "test_video.mp4", mode="wb")
-#     assert downloader.total_download_duration > 0
-
-
-# @pytest.mark.asyncio
-# async def test_download_video_no_selected_quality(downloader: Downloader, mocker) -> None:
-#     mocker.patch.object(downloader, '_Downloader__select_best_quality', return_value=None)
-#     mocker.patch.object(downloader, '_selected_quality', new_callable=mocker.PropertyMock)
-#     mocker.patch.object(downloader, '_download_segment', return_value=b'segment_data')
-#     mocker.patch('aiofiles.open', new_callable=mocker.mock_open)
-
-#     downloader._selected_quality = None
-#     downloader._filename = "test_video"
-
-#     await downloader.download_video()
-
-#     downloader._Downloader__select_best_quality.assert_called_once()
-#     aiofiles.open.assert_called_once_with(downloader._upload_directory / "test_video.mp4", mode="wb")
-#     assert downloader.total_download_duration > 0
-
-
-# @pytest.mark.asyncio
-# async def test_download_video_segment_download_error(downloader: Downloader, mocker) -> None:
-#     mocker.patch.object(downloader, '_Downloader__select_best_quality', return_value=None)
-#     mocker.patch.object(downloader, '_selected_quality', new_callable=mocker.PropertyMock)
-#     mocker.patch.object(downloader, '_download_segment', side_effect=SegmentDownloadError)
-#     mocker.patch('aiofiles.open', new_callable=mocker.mock_open)
-
-#     downloader._selected_quality.segments = [m3u8.Segment(uri=f"http://example.com/segment{i}.ts") for i in range(10)]
-#     downloader._filename = "test_video"
-
-#     with pytest.raises(SegmentDownloadError):
-#         await downloader.download_video()
-
-#     aiofiles.open.assert_called_once_with(downloader._upload_directory / "test_video.mp4", mode="wb")

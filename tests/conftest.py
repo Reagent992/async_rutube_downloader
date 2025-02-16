@@ -24,7 +24,7 @@ def mocked_session() -> AsyncMock:
 
 @pytest.fixture(scope="function")
 def get_response_mock(mocked_session: AsyncMock) -> AsyncMock:
-    """Mock ClientSession get method.
+    """Mock `ClientSession.get` method.
     Modify this fixture to return different responses for different tests."""
     get_response_mock = AsyncMock(name="get_method_response_fixture")
     get_response_mock.__aenter__.return_value = get_response_mock
@@ -69,3 +69,4 @@ def downloader(
     get_response_mock.text.return_value = master_playlist_fixture
     downloader = Downloader(RUTUBE_LINK, session=mocked_session)
     return downloader
+
