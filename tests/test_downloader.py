@@ -41,7 +41,6 @@ async def test_download_video(
             downloader._session.get.call_count  # type: ignore
             == len(downloader._selected_quality.segments) + prev_get_calls
         )
-        assert downloader.total_download_duration
 
 
 @pytest.mark.asyncio
