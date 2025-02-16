@@ -6,7 +6,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 ## How to use it?
 
 - Simple way: Download executable file from Releases.
-- Hard way: clone repo, install dependencies(poetry), run `main.py`
+- Hard way: clone repo, install dependencies(poetry), run `run_ui.py`
 
 ![screen_cast](screen_cast.gif)
 
