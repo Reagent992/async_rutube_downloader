@@ -31,6 +31,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 
 # Dev notes
 - Looks like python installed by **UV** doesn't provide **Tkinter** support. So i've switched to **poetry** and **pyenv**.
+- build `poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole`
 
 ## TODO
 
