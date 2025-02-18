@@ -1,24 +1,38 @@
 import asyncio
+import tkinter
 from asyncio import AbstractEventLoop, new_event_loop
 from pathlib import Path
 from queue import Queue
-from tkinter import Button, Entry, Label, Tk, filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox
 
-from downloader import Downloader, QualityError
+import customtkinter as ctk
+
+from downloader import Downloader
 from utils.create_session import create_aiohttp_session
 from utils.exceptions import (
     APIResponseError,
     DownloaderIsNotInitializerError,
     InvalidURLError,
     MasterPlaylistInitializationError,
+    QualityError,
     SegmentDownloadError,
     UploadDirectoryNotSelectedError,
 )
 
+INVALID_URL_MSG = "The provided URL is invalid. Please check and try again."
+API_RESPONSE_ERROR_MSG = (
+    "Failed to fetch video data. "
+    "The URL might be incorrect, or there may be a connection issue."
+)
+SEGMENT_DOWNLOAD_ERROR_MSG = (
+    "A network issue occurred while downloading a video "
+    "segment. Please check your internet connection and retry."
+)
 
-class DownloaderUI(Tk):
+
+class DownloaderUI(ctk.CTk):
     """
-    UI for Rutube Downloader created with tkinter.
+    UI for Rutube Downloader created with CustomTKinter.
     """
 
     def __init__(
@@ -28,89 +42,94 @@ class DownloaderUI(Tk):
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
+
         self._loop = loop
         self._session = create_aiohttp_session(self._loop)
         self._refresh_ms = 25
         self._queue: Queue = Queue()
         self._download: Downloader | None = None
         self._upload_directory: Path | None = None
-        # Ui elements:
+        self.__error_counter: str = ""
 
-        # Basic configure
+        # Configure window
         self.title("Rutube Downloader")
-        self.geometry("750x300")
+        self.geometry("750x250")
         self.TEXT_WRAP_LENGTH = 450
+        # Column "0" will be extended to full width.
+        self.grid_columnconfigure(0, weight=1)
 
         # Select folder
-        self._folder_button = Button(
+        self._folder_button = ctk.CTkButton(
             self, text="Select Folder", command=self.select_folder
         )
-        self._folder_button.grid(column=1, row=1, padx=10, pady=15)
-        self._chosen_directory = Label(
+        self._folder_button.grid(column=1, row=0, padx=10, pady=15)
+        self._chosen_directory = ctk.CTkLabel(
             self, text="No folder selected", wraplength=self.TEXT_WRAP_LENGTH
         )
-        self._chosen_directory.grid(column=2, row=1, padx=10, pady=15)
+        self._chosen_directory.grid(column=0, row=0, padx=10, pady=15)
 
         # URL input
-        self._url_label = Label(self, text="Enter Rutube URL:")
-        self._url_label.grid(column=1, row=2, padx=10, pady=10)
-        self._url_entry = Entry(self, width=48)
-        self._url_entry.grid(column=2, row=2, padx=10, pady=10)
+        self._url_entry = ctk.CTkEntry(
+            self, width=300, placeholder_text="Enter RuTube URL or Video ID"
+        )
+        self._url_entry.bind("<Return>", self.fetch_video_info)
+        self._url_entry.grid(column=0, row=1, padx=10, pady=10, sticky="ew")
 
         # Get video info
-        self._fetch_result_label = Label(self, text="")
-        self._fetch_result_label.grid(column=1, row=3, padx=10, pady=10)
+        self._fetch_result_label = ctk.CTkLabel(self, text="")
+        self._fetch_result_label.grid(column=0, row=2, padx=10, pady=10)
 
-        self._video_info_button = Button(
+        self._video_info_button = ctk.CTkButton(
             self,
             text="Get Video Info",
             command=self.fetch_video_info,
-            state="disabled",  # initially disabled
+            state="disabled",
         )
-        self._video_info_button.grid(column=2, row=3, padx=10, pady=10)
+        self._video_info_button.grid(column=1, row=1, padx=10, pady=10)
 
         # Video title
-        self._video_title_static_text = Label(self, text="Video Title:")
-        self._video_title_static_text.grid(column=1, row=4, padx=10, pady=10)
-        self._video_title_dynamic = Label(
+        self._video_title_dynamic = ctk.CTkLabel(
             self, text="", wraplength=self.TEXT_WRAP_LENGTH
         )
-        self._video_title_dynamic.grid(column=2, row=4, padx=10, pady=10)
+        self._video_title_dynamic.grid(column=0, row=2, padx=10, pady=10)
 
         # Dropdown for qualities
-        self._dropdown = ttk.Combobox(self, state="readonly")
-        self._dropdown.grid(column=1, row=5, padx=10, pady=10)
+        self._dropdown = ctk.CTkComboBox(self, state=tkinter.DISABLED)
+        self._dropdown.grid(column=0, row=3, padx=10, pady=10)
 
         # Download button
-        self._download_button = ttk.Button(
+        self._download_button = ctk.CTkButton(
             self,
             text="Download",
             command=self.start_download,
-            state="disabled",  # initially disabled
+            state="disabled",
         )
-        self._download_button.grid(column=2, row=5, padx=10, pady=10)
+        self._download_button.grid(column=1, row=3, padx=10, pady=10)
 
         # Progress bar
-        self._progress_bar = ttk.Progressbar(
-            self, orient="horizontal", length=400, mode="determinate"
-        )
+        self._progress_bar = ctk.CTkProgressBar(self)
         self._progress_bar.grid(
-            column=2, row=6, columnspan=2, padx=10, pady=10, sticky="ew"
+            column=0, columnspan=2, row=4, padx=10, pady=10, sticky="ew"
         )
+        self._progress_bar.set(0)
+        # Customtkinter progress bar have 0-1 range, so we need to divide it
+        self._progress_bar_divider = 100
 
     def _update_bar(self, progress_bar_value: int) -> None:
         """Update the progress bar.
         Call only from main thread."""
         if progress_bar_value == 100 and self._download:
-            self._progress_bar["value"] = progress_bar_value
+            self._progress_bar.set(1)
             messagebox.showinfo(
                 "Download Complete",
                 "Download Complete",
-            )  #  FIXME: A "Download Complete" alert is shown
+            )  #  TODO: A "Download Complete" alert is shown
             # a little bit before the last downloaded chunk is actually saved.
             self._download = None
         else:
-            self._progress_bar["value"] = progress_bar_value
+            self._progress_bar.set(
+                progress_bar_value / self._progress_bar_divider
+            )
             self.after(self._refresh_ms, self._poll_queue)
 
     def _queue_update(
@@ -129,33 +148,49 @@ class DownloaderUI(Tk):
             if self._download:
                 self.after(self._refresh_ms, self._poll_queue)
 
-    def fetch_video_info(self) -> None:
+    def fetch_video_info(self, *args) -> None:
         """
         1. Fetch video info from Rutube API.
-        2. Fill the UI with available qualities or error message.
+        2. Fill the UI with fetched info or display an error message.
+
+        Args:
+            *args: Press **Enter** in the URL input area, creates an object,
+                this object goes here.
         """
-        self._fetch_result_label.config(text="")
+        self._fetch_result_label.configure(text="")
         if not self._url_entry.get():
-            messagebox.showerror("Error", "Enter URL first")
+            messagebox.showerror(
+                "Error", "Please enter a video URL before proceeding."
+            )
         elif self._upload_directory and self._url_entry.get():
             try:
                 self.__fetch_video_info()
                 self.__fill_qualities()
                 self.__fill_title()
             except (InvalidURLError, KeyError):
-                self._fetch_result_label.config(text="Invalid URL", fg="red")
+                self._fetch_result_label.configure(
+                    text=INVALID_URL_MSG + self.__error_counter,
+                    text_color="red",
+                )
+                self.__increase_error_counter()
             except (APIResponseError, MasterPlaylistInitializationError):
-                self._fetch_result_label.config(
-                    text="Wrong URL or Connection fail", fg="red"
+                self._fetch_result_label.configure(
+                    text=API_RESPONSE_ERROR_MSG + self.__error_counter,
+                    text_color="red",
                 )
+                self.__increase_error_counter()
             except SegmentDownloadError:
-                self._fetch_result_label.config(
-                    text=(
-                        "Connection fail occurred "
-                        "while downloading segment of video"
-                    ),
-                    fg="red",
+                self._fetch_result_label.configure(
+                    text=SEGMENT_DOWNLOAD_ERROR_MSG + self.__error_counter,
+                    text_color="red",
                 )
+                self.__increase_error_counter()
+
+    def __increase_error_counter(self) -> None:
+        if self.__error_counter:
+            self.__error_counter = str(int(self.__error_counter) + 1)
+        else:
+            self.__error_counter = "1"
 
     def __fetch_video_info(self) -> None:
         """
@@ -165,7 +200,6 @@ class DownloaderUI(Tk):
 
         Note:
             - blocks the main thread until gets video info.
-        # TODO: its possible to use more threads to avoid UI blocks.
         """
         if not self._upload_directory:
             raise UploadDirectoryNotSelectedError
@@ -175,6 +209,7 @@ class DownloaderUI(Tk):
             self._queue_update,
             self._upload_directory,
             self._session,
+            auto_close_session=False,
         )
         download_future = asyncio.run_coroutine_threadsafe(
             self._download.fetch_video_info(), self._loop
@@ -185,12 +220,14 @@ class DownloaderUI(Tk):
         fields = [
             f"{x}x{y}" for x, y in self._download_available_qualities.keys()
         ]
-        self._dropdown["values"] = fields
-        self._dropdown.current(len(fields) - 1)
+        self._dropdown.configure(values=fields, state=tkinter.NORMAL)
+        self._dropdown.set(fields[-1])
 
     def __fill_title(self) -> None:
         if self._download:
-            self._video_title_dynamic.config(text=self._download.video_title)
+            self._video_title_dynamic.configure(
+                text=self._download.video_title
+            )
 
     def start_download(self) -> None:
         """Download the video from the given URL."""
@@ -223,12 +260,19 @@ class DownloaderUI(Tk):
 
     def select_folder(self) -> None:
         directory = filedialog.askdirectory(title="Select Download Folder")
-        self._chosen_directory.config(text=directory)
-        self._upload_directory = Path(directory)
-        if not self._upload_directory.is_dir():
-            raise ValueError("Selected folder does not exist")
-        self._download_button.config(state="normal")
-        self._video_info_button.config(state="normal")
+        if directory:
+            self._chosen_directory.configure(text=directory)
+            self._upload_directory = Path(directory)
+            if not self._upload_directory.is_dir():
+                raise ValueError("Selected folder does not exist")
+            self._download_button.configure(state="normal")
+            self._video_info_button.configure(state="normal")
 
 
-# Use run_ui.py to start the application
+if __name__ == "__main__":
+    app = DownloaderUI()
+    app._video_title_dynamic.configure(
+        text="don't run this file directly, use run_ui.py",
+        text_color="red",
+    )
+    app.mainloop()
