@@ -18,7 +18,7 @@ HD_720p: Final = (1280, 720)
 
 # Application Settings
 # Configures log level, while `DEBUG = True` print debug messages.
-DEBUG = True
+DEBUG = False
 
 
 # Links to download. Used for testing purposes.
