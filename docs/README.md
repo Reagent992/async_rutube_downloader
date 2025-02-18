@@ -5,7 +5,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 
 ## How to use it?
 
-- Simple way: Download executable file from Releases.
+- Simple way: Download executable file from [Releases](https://github.com/Reagent992/async_rutube_downloader/releases/latest).
 - Hard way: clone repo, install dependencies(poetry), run `run_ui.py`
 
 ![screen_cast](screen_cast.gif)
