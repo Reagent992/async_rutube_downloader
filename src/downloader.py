@@ -49,6 +49,7 @@ class Downloader:
         callback: Callable[[int, int], None] | None = None,
         upload_directory: Path = Path.cwd(),
         session: ClientSession | None = None,
+        auto_close_session: bool = True,
     ) -> None:
         """
         Args:
@@ -74,6 +75,7 @@ class Downloader:
         self._session = (
             session if session else create_aiohttp_session(self._loop)
         )
+        self._auto_close_session = auto_close_session
         self.__api_response: APIResponseDict | None = None
         self.__amount_of_chunks = 0
         self.__completed_requests = 0
@@ -160,7 +162,8 @@ class Downloader:
             f"Downloaded {self.video_title} in "
             f"{self.total_download_duration} minutes"
         )
-        await self.close()
+        if self._auto_close_session:
+            await self.close()
 
     async def close(self) -> None:
         if not self._session.closed:
