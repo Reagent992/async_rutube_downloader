@@ -1,19 +1,20 @@
-[tool.poetry]
+[project]
 name = "rutube-downloader"
-version = "0.1.0"
-description = ""
-authors = ["Miron Sadykov <MironSadykov@yandex.ru>"]
+version = "1.1.0"
+description = "download video from RuTube"
+authors = [{name="Miron Sadykov", email="MironSadykov@yandex.ru"}]
 readme = "docs/README.md"
+requires-python = "3.12.*"
+dependencies = [
+	"aiohttp(>=3.11.6, <4.0.0)",
+	"aiofiles(>=24.1.0, <25.0.0)",
+	"m3u8(>=6.0.0, <7.0.0)",
+	"python-slugify(>=8.0.4, <9.0.0)",
+	"customtkinter(>=5.2.2, <6.0.0)",
+]
+
+[tool.poetry]
 package-mode = false
-
-[tool.poetry.dependencies]
-python = "3.12.*"
-aiofiles = "^24.1.0"
-aiohttp = "^3.11.6"
-m3u8 = "^6.0.0"
-python-slugify = "^8.0.4"
-customtkinter = "^5.2.2"
-
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.4"
@@ -25,7 +26,7 @@ pytest-asyncio = "^0.24.0"
 pytest-cov = "^6.0.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
