@@ -50,6 +50,7 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] fix "Unclosed connector"
 - [x] tests
 - [x] Make the UI less ugly.
+- [x] add threading to UI
 - [ ] add video thumbnail in UI
 - [ ] russian ui.
 - [ ] cli client("in process" and quality choose.).

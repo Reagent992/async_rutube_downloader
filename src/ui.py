@@ -1,6 +1,7 @@
 import asyncio
 import tkinter
 from asyncio import AbstractEventLoop, new_event_loop
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from queue import Queue
 from tkinter import filedialog, messagebox
@@ -50,6 +51,7 @@ class DownloaderUI(ctk.CTk):
         self._download: Downloader | None = None
         self._upload_directory: Path | None = None
         self.__error_counter: str = ""
+        self.__thread_pool = ThreadPoolExecutor()
 
         # Configure window
         self.title("Rutube Downloader")
@@ -72,7 +74,7 @@ class DownloaderUI(ctk.CTk):
         self._url_entry = ctk.CTkEntry(
             self, width=300, placeholder_text="Enter RuTube URL or Video ID"
         )
-        self._url_entry.bind("<Return>", self.fetch_video_info)
+        self._url_entry.bind("<Return>", self._run_fetch_concurrently)
         self._url_entry.grid(column=0, row=1, padx=10, pady=10, sticky="ew")
 
         # Get video info
@@ -82,7 +84,7 @@ class DownloaderUI(ctk.CTk):
         self._video_info_button = ctk.CTkButton(
             self,
             text="Get Video Info",
-            command=self.fetch_video_info,
+            command=self._run_fetch_concurrently,
             state="disabled",
         )
         self._video_info_button.grid(column=1, row=1, padx=10, pady=10)
@@ -114,6 +116,16 @@ class DownloaderUI(ctk.CTk):
         self._progress_bar.set(0)
         # Customtkinter progress bar have 0-1 range, so we need to divide it
         self._progress_bar_divider = 100
+
+    def _run_fetch_concurrently(self, *args) -> None:
+        """
+        Run fetch_video_info in separate thread.
+
+        Args:
+            *args: Press **Enter** in the URL input area, creates an object,
+                this object goes here.
+        """
+        self.__thread_pool.submit(self.fetch_video_info)
 
     def _update_bar(self, progress_bar_value: int) -> None:
         """Update the progress bar.
