@@ -53,15 +53,17 @@ class Downloader:
     ) -> None:
         """
         Args:
-            url (str): The URL of the Rutube video to download.
-            loop (asyncio.AbstractEventLoop, optional): The event loop to use
+            url: The URL of the Rutube video to download.
+            loop: The event loop to use
                 for asynchronous operations.
                 Defaults to the current event loop.
-            callback (Callable[[int, int], None], optional):
+            callback:
                 The callback function to call with the number of
                 completed requests and the total requests. Defaults to None.
-            upload_directory (Path, optional): The directory to upload
+            upload_directory: The directory to upload
                 the video to. Defaults to the current working directory.
+            session: The aiohttp ClientSession to use for requests.
+            auto_close_session: Whether to close the session
         """
         self.url = url
         self.video_title = "Unknown video"
