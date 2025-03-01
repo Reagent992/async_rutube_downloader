@@ -6,7 +6,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 ## How to use it?
 
 - Simple way: Download executable file from [Releases](https://github.com/Reagent992/async_rutube_downloader/releases/latest).
-- Hard way: clone repo, install dependencies(poetry), run `run_ui.py`
+- Hard way: [install project](./dev.md)
 
 ![screen_cast](screen_cast.gif)
 
@@ -17,6 +17,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 ## Technical Features
 - Progress bar displays the real download progress.
 - UI and loading work in different threads.
+- UI localization.
 
 # Used libs
 
@@ -29,9 +30,7 @@ Small project with one main function - download a video from RuTube(it's a russi
 | [slugify ](https://github.com/un33k/python-slugify)             | Convert video title to file name |
 | [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) | Better TKinter UI                |
 
-# Dev notes
-- Looks like python installed by **UV** doesn't provide **Tkinter** support. So i've switched to **poetry** and **pyenv**.
-- build `poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole`
+
 
 ## TODO
 
