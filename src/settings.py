@@ -1,3 +1,4 @@
+import gettext
 from typing import Final
 
 # Constants
@@ -20,10 +21,16 @@ HD_720p: Final = (1280, 720)
 # Configures log level, while `DEBUG = True` print debug messages.
 DEBUG = False
 
+# Locale configuration
+gettext.bindtextdomain("messages", "locales")
+gettext.textdomain("messages")
+_ = gettext.gettext
 
 # Links to download. Used for testing purposes.
 # 1 minutes long
-TEST_VIDEO_URL: Final = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+TEST_VIDEO_URL: Final = (
+    "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+)
 TEST_VIDEO_ID: Final = "2ce725b3dc1a243f8456458975ecd872"
 # LINK = "2ce725b3dc1a243f8456458975ecd872"  # same, but only id
 # downloaded for ~7 seconds

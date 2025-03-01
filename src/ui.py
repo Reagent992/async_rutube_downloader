@@ -9,6 +9,7 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 
 from downloader import Downloader
+from settings import _
 from utils.create_session import create_aiohttp_session
 from utils.exceptions import (
     APIResponseError,
@@ -21,11 +22,11 @@ from utils.exceptions import (
 )
 
 INVALID_URL_MSG = "The provided URL is invalid. Please check and try again."
-API_RESPONSE_ERROR_MSG = (
+API_RESPONSE_ERROR_MSG = _(
     "Failed to fetch video data. "
     "The URL might be incorrect, or there may be a connection issue."
 )
-SEGMENT_DOWNLOAD_ERROR_MSG = (
+SEGMENT_DOWNLOAD_ERROR_MSG = _(
     "A network issue occurred while downloading a video "
     "segment. Please check your internet connection and retry."
 )
@@ -54,7 +55,7 @@ class DownloaderUI(ctk.CTk):
         self.__thread_pool = ThreadPoolExecutor()
 
         # Configure window
-        self.title("Rutube Downloader")
+        self.title(_("Rutube Downloader"))
         self.geometry("750x250")
         self.TEXT_WRAP_LENGTH = 450
         # Column "0" will be extended to full width.
@@ -62,17 +63,19 @@ class DownloaderUI(ctk.CTk):
 
         # Select folder
         self._folder_button = ctk.CTkButton(
-            self, text="Select Folder", command=self.select_folder
+            self, text=_("Select Folder"), command=self.select_folder
         )
         self._folder_button.grid(column=1, row=0, padx=10, pady=15)
         self._chosen_directory = ctk.CTkLabel(
-            self, text="No folder selected", wraplength=self.TEXT_WRAP_LENGTH
+            self,
+            text=_("No folder selected"),
+            wraplength=self.TEXT_WRAP_LENGTH,
         )
         self._chosen_directory.grid(column=0, row=0, padx=10, pady=15)
 
         # URL input
         self._url_entry = ctk.CTkEntry(
-            self, width=300, placeholder_text="Enter RuTube URL or Video ID"
+            self, width=300, placeholder_text=_("Enter RuTube URL or Video ID")
         )
         self._url_entry.bind("<Return>", self._run_fetch_concurrently)
         self._url_entry.grid(column=0, row=1, padx=10, pady=10, sticky="ew")
@@ -83,7 +86,7 @@ class DownloaderUI(ctk.CTk):
 
         self._video_info_button = ctk.CTkButton(
             self,
-            text="Get Video Info",
+            text=_("Get Video Info"),
             command=self._run_fetch_concurrently,
             state="disabled",
         )
@@ -102,7 +105,7 @@ class DownloaderUI(ctk.CTk):
         # Download button
         self._download_button = ctk.CTkButton(
             self,
-            text="Download",
+            text=_("Download"),
             command=self.start_download,
             state="disabled",
         )
@@ -133,8 +136,8 @@ class DownloaderUI(ctk.CTk):
         if progress_bar_value == 100 and self._download:
             self._progress_bar.set(1)
             messagebox.showinfo(
-                "Download Complete",
-                "Download Complete",
+                _("Download Complete"),
+                _("Download Complete"),
             )  #  TODO: A "Download Complete" alert is shown
             # a little bit before the last downloaded chunk is actually saved.
             self._download = None
@@ -172,7 +175,7 @@ class DownloaderUI(ctk.CTk):
         self._fetch_result_label.configure(text="")
         if not self._url_entry.get():
             messagebox.showerror(
-                "Error", "Please enter a video URL before proceeding."
+                "Error", _("Please enter a video URL before proceeding.")
             )
         elif self._upload_directory and self._url_entry.get():
             try:
