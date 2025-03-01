@@ -49,7 +49,7 @@ msgstr "Введите URL или ID видео на RuTube"
 
 #: src/ui.py:89
 msgid "Get Video Info"
-msgstr "Получить информацию о видео"
+msgstr "Проверить"
 
 #: src/ui.py:108
 msgid "Download"

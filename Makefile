@@ -41,7 +41,6 @@ compile:
 clean:
 	rm -f $(LOCALEDIR)/*/LC_MESSAGES/$(DOMAIN).mo $(LOCALEDIR)/$(DOMAIN).pot
 
-
 # Build executable
 build:
-    poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole
+	poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole
