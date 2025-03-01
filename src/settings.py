@@ -1,4 +1,5 @@
 import gettext
+import locale
 from typing import Final
 
 # Constants
@@ -22,9 +23,18 @@ HD_720p: Final = (1280, 720)
 DEBUG = False
 
 # Locale configuration
-gettext.bindtextdomain("messages", "locales")
-gettext.textdomain("messages")
-_ = gettext.gettext
+system_lang, _ = locale.getdefaultlocale()
+try:
+    lang = (
+        system_lang.split("_")[0] if system_lang else "en"
+    )
+except IndexError:
+    lang = "en"
+translation = gettext.translation(
+    "messages", "locales", languages=[lang], fallback=True
+)
+translation.install()
+_ = translation.gettext
 
 # Links to download. Used for testing purposes.
 # 1 minutes long
