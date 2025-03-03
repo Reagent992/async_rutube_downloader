@@ -21,20 +21,34 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
+        cache: 'pip'
     
-    - name: Install Poetry
+    - name: Install Poetry (Linux)
+      if: matrix.os == 'ubuntu-latest'
       uses: snok/install-poetry@v1
       with:
         version: 2.0.0
+
+    - name: Install Poetry (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+        echo "$env:APPDATA\Python\Scripts" >> $env:GITHUB_PATH
     
     - name: Install dependencies
-      run: poetry install
+      run: |
+        poetry install --no-interaction --with dev
     
+    - name: Verify dependencies
+      run: poetry check
+
     - name: Build with PyInstaller
+      shell: bash
       run: poetry run pyinstaller ./src/run_ui.py --path ./src/ --clean --onefile --noconsole
     
     - name: Rename binary for Windows
       if: matrix.os == 'windows-latest'
+      shell: bash
       run: mv dist/run_ui.exe dist/rutube_downloader.exe
     
     - name: Rename binary for Unix
@@ -46,6 +60,7 @@ jobs:
       with:
         name: binaries-${{ matrix.os }}
         path: dist/rutube_downloader*
+        retention-days: 1
 
   release:
     needs: build
@@ -62,5 +77,6 @@ jobs:
           binaries-*/rutube_downloader*
         draft: false
         prerelease: false
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
