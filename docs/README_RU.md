@@ -1,3 +1,5 @@
+[![release](https://img.shields.io/github/release/Reagent992/async_rutube_downloader.svg)](https://github.com/Reagent992/async_rutube_downloader/releases/latest)
+
 [English](README.md) / Russian
 
 # Что это?

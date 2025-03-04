@@ -1,3 +1,5 @@
+[![release](https://img.shields.io/github/release/Reagent992/async_rutube_downloader.svg)](https://github.com/Reagent992/async_rutube_downloader/releases/latest)
+
 English / [Russian](./README_RU.md)
 # What is it?
 
@@ -29,32 +31,3 @@ Small project with one main function - download a video from RuTube(it's a russi
 | [PyInstaller](https://github.com/pyinstaller/pyinstaller)       | Create executable files          |
 | [slugify ](https://github.com/un33k/python-slugify)             | Convert video title to file name |
 | [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) | Better TKinter UI                |
-
-
-
-## TODO
-
-- [x] Make a download stable.
-- [x] basic refactoring.
-- [x] test speed with processing. no improvements.
-- [x] Update Downloader to work with UI.
-- [x] UI by Tkinter. To make a responsive UI - Tkinter should be in main thread, when asyncio event loop should be in separate thread.
-- [x] Check m3u8 didn't make sync connections. [link](https://github.com/globocom/m3u8/wiki/FAQ#how-to-use-a-custom-python-http-client)
-looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async by aiohttp.
-- [x] timeouts for download.
-- [x] Use only one `ClientSession` in `Downloader`.
-- [x] fix "invalid url" with http://
-- [x] long video title breaks UI
-- [x] printable video title and safe-file-name title must be different
-- [x] fix "Unclosed connector"
-- [x] tests
-- [x] Make the UI less ugly.
-- [x] add threading to UI
-- [x] russian ui.
-- [ ] add video thumbnail in UI
-- [ ] cli client("in process" and quality choose.).
-- [ ] Mass download support.
-- [ ] Cancel download (method and button for ui)
-- [ ] continue download
-- [ ] pypi library.
-- [ ] shorts support

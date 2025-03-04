@@ -1,5 +1,11 @@
 name: Release Build
 
+# Add explicit permissions for the entire workflow
+permissions:
+  contents: write
+  discussions: write
+  packages: write
+
 on:
   push:
     branches:

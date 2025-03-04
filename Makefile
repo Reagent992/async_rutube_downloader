@@ -43,4 +43,4 @@ clean:
 
 # Build executable
 build:
-	poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole
+	poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole --add-data "locales:locales"
