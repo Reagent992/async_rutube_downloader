@@ -56,7 +56,7 @@ jobs:
     - name: Build with PyInstaller
       run: |
         source $VENV
-        poetry run pyinstaller ./src/run_ui.py --path ./src/ --clean --onefile --noconsole
+        poetry run pyinstaller ./src/run_ui.py --path ./src/ --clean --onefile --noconsole --add-data "locales:locales"
     
     - name: Rename binary for Windows
       if: matrix.os == 'windows-latest'
