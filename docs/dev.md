@@ -32,7 +32,7 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] add threading to UI
 - [x] russian ui.
 - [x] build ci
-- [ ] run tests ci
+- [x] run tests ci
 - [ ] add video thumbnail in UI
 - [ ] cli client("in process" and quality choose.).
 - [ ] Mass download support.
