@@ -8,7 +8,7 @@ SRC = $(shell find src -type f -name "*.py")
 LANGUAGES_FILE = $(LOCALEDIR)/languages.txt
 LANGUAGES = $(shell cat $(LANGUAGES_FILE))
 
-.PHONY: all update compile clean
+.PHONY: all update compile clean build
 
 # 1️⃣ Extract translatable strings and generate messages.pot
 pot:
