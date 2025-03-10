@@ -14,13 +14,13 @@ Small project with one main function - download a video from RuTube(it's a russi
 ![screen_cast](screen_cast.gif)
 
 # About
-- This project was created for learning purposes and was inspired by a similar synchronous library and a book about async.
-- The async version allows you to use the full speed of your internet connection.
+This project was created for learning purposes and was inspired by a similar synchronous library and a book about async.
 
 ## Technical Features
 - Progress bar displays the real download progress.
 - UI and loading work in different threads.
 - UI localization.
+- The async version allows you to use the full speed of your internet connection.
 
 # Used libs
 

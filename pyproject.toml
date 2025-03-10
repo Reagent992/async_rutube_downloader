@@ -1,6 +1,6 @@
 [project]
-name = "rutube-downloader"
-version = "1.2.1"
+name = "async_rutube_downloader"
+version = "1.2.2"
 description = "download video from RuTube"
 authors = [{name="Miron Sadykov", email="MironSadykov@yandex.ru"}]
 readme = "docs/README.md"
@@ -14,7 +14,9 @@ dependencies = [
 ]
 
 [tool.poetry]
-package-mode = false
+packages = [
+    { include = "src" },
+]
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.4"
