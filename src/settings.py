@@ -1,9 +1,7 @@
 import gettext
-import locale
-import os
-import platform
-import sys
 from typing import Final
+
+from utils.locale import get_locale, get_resource_path
 
 # Constants
 MINUTE: Final = 60
@@ -28,41 +26,15 @@ DEBUG = False
 # Locale configuration
 domain = "messages"
 localedir = "locales"
+translation = gettext.translation(
+    domain,
+    get_resource_path(localedir),
+    [get_locale()],
+    fallback=True,
+)
+translation.install()
+_ = translation.gettext
 
-
-def get_resource_path(relative_path):
-    """Get absolute path to resource for both development and PyInstaller bundle"""
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        if hasattr(sys, "_MEIPASS"):
-            base_path = sys._MEIPASS  # type: ignore
-            print(base_path)
-        else:
-            raise AttributeError
-    except (AttributeError, Exception):
-        base_path = os.path.abspath(".")
-        print(base_path)
-
-    return os.path.join(base_path, relative_path)
-
-
-if platform.system() == "Windows":
-    system_locale, _ = locale.getdefaultlocale()
-    try:
-        lang = system_locale.split("_")[0] if system_locale else "en"
-    except IndexError:
-        lang = "en"
-
-    locale_dir = get_resource_path(localedir)
-    translation = gettext.translation(
-        domain, locale_dir, [lang], fallback=True
-    )
-    translation.install()
-    _ = translation.gettext
-else:
-    gettext.bindtextdomain(domain, localedir)
-    gettext.textdomain(domain)
-    _ = gettext.gettext
 
 # Links to download. Used for testing purposes.
 # 1 minutes long
