@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 
-from settings import DEBUG
+from async_rutube_downloader.settings import DEBUG
 
 handlers = []
 if DEBUG:

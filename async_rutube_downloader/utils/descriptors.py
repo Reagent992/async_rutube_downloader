@@ -1,7 +1,11 @@
 import re
 
-from settings import ID_PATTERN, URL_FOR_ID_TEMPLATE, URL_PATTERN
-from utils.exceptions import InvalidURLError
+from async_rutube_downloader.settings import (
+    ID_PATTERN,
+    URL_FOR_ID_TEMPLATE,
+    URL_PATTERN,
+)
+from async_rutube_downloader.utils.exceptions import InvalidURLError
 
 
 class UrlDescriptor:

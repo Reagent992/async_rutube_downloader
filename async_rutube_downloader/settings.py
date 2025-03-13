@@ -1,7 +1,7 @@
 import gettext
 from typing import Final
 
-from utils.locale import get_locale, get_resource_path
+from async_rutube_downloader.utils.locale import get_locale, get_resource_path
 
 # Constants
 MINUTE: Final = 60
@@ -24,8 +24,8 @@ HD_720p: Final = (1280, 720)
 DEBUG = False
 
 # Locale configuration
-domain = "messages"
-localedir = "locales"
+domain: Final = "messages"
+localedir: Final = "locales"
 translation = gettext.translation(
     domain,
     get_resource_path(localedir),

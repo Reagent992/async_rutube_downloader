@@ -3,9 +3,11 @@ from typing import Self
 import m3u8
 from aiohttp import ClientSession
 
-from utils.decorators import retry
-from utils.exceptions import MasterPlaylistInitializationError
-from utils.type_hints import Qualities
+from async_rutube_downloader.utils.decorators import retry
+from async_rutube_downloader.utils.exceptions import (
+    MasterPlaylistInitializationError,
+)
+from async_rutube_downloader.utils.type_hints import Qualities
 
 
 class MasterPlaylist:

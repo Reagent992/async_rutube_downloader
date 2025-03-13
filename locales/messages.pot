@@ -17,46 +17,46 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/ui.py:26
+#: async_rutube_downloader/ui.py:26
 msgid ""
 "Failed to fetch video data. The URL might be incorrect, or there may be a "
 "connection issue."
 msgstr ""
 
-#: src/ui.py:30
+#: async_rutube_downloader/ui.py:30
 msgid ""
 "A network issue occurred while downloading a video segment. Please check "
 "your internet connection and retry."
 msgstr ""
 
-#: src/ui.py:58
+#: async_rutube_downloader/ui.py:58
 msgid "Rutube Downloader"
 msgstr ""
 
-#: src/ui.py:66
+#: async_rutube_downloader/ui.py:66
 msgid "Select Folder"
 msgstr ""
 
-#: src/ui.py:71
+#: async_rutube_downloader/ui.py:71
 msgid "No folder selected"
 msgstr ""
 
-#: src/ui.py:78
+#: async_rutube_downloader/ui.py:78
 msgid "Enter RuTube URL or Video ID"
 msgstr ""
 
-#: src/ui.py:89
+#: async_rutube_downloader/ui.py:89
 msgid "Get Video Info"
 msgstr ""
 
-#: src/ui.py:108
+#: async_rutube_downloader/ui.py:108
 msgid "Download"
 msgstr ""
 
-#: src/ui.py:139 src/ui.py:140
+#: async_rutube_downloader/ui.py:139 async_rutube_downloader/ui.py:140
 msgid "Download Complete"
 msgstr ""
 
-#: src/ui.py:178
+#: async_rutube_downloader/ui.py:178
 msgid "Please enter a video URL before proceeding."
 msgstr ""

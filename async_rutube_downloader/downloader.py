@@ -9,18 +9,18 @@ import m3u8
 from aiohttp import ClientSession
 from slugify import slugify
 
-from playlist import MasterPlaylist, Qualities
-from settings import (
+from async_rutube_downloader.playlist import MasterPlaylist, Qualities
+from async_rutube_downloader.settings import (
     CHUNK_SIZE,
     MINUTE,
     RUTUBE_API_LINK,
     TEST_VIDEO_URL,
     VIDEO_ID_REGEX,
 )
-from utils.create_session import create_aiohttp_session
-from utils.decorators import retry
-from utils.descriptors import UrlDescriptor
-from utils.exceptions import (
+from async_rutube_downloader.utils.create_session import create_aiohttp_session
+from async_rutube_downloader.utils.decorators import retry
+from async_rutube_downloader.utils.descriptors import UrlDescriptor
+from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
     InvalidPlaylistError,
     InvalidURLError,
@@ -28,8 +28,8 @@ from utils.exceptions import (
     QualityError,
     SegmentDownloadError,
 )
-from utils.logger import get_logger
-from utils.type_hints import APIResponseDict
+from async_rutube_downloader.utils.logger import get_logger
+from async_rutube_downloader.utils.type_hints import APIResponseDict
 
 logger = get_logger(__name__)
 

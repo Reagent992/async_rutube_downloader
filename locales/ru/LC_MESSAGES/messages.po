@@ -19,46 +19,46 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: src/ui.py:26
+#: async_rutube_downloader/ui.py:26
 msgid ""
 "Failed to fetch video data. The URL might be incorrect, or there may be a "
 "connection issue."
 msgstr "Не удалось получить данные о видео. URL может быть неправильным, или возникла проблема с соединением."
 
-#: src/ui.py:30
+#: async_rutube_downloader/ui.py:30
 msgid ""
 "A network issue occurred while downloading a video segment. Please check "
 "your internet connection and retry."
 msgstr "Произошла ошибка сети при скачивании сегмента видео. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова."
 
-#: src/ui.py:58
+#: async_rutube_downloader/ui.py:58
 msgid "Rutube Downloader"
 msgstr "Загрузчик RuTube"
 
-#: src/ui.py:66
+#: async_rutube_downloader/ui.py:66
 msgid "Select Folder"
 msgstr "Выберите папку"
 
-#: src/ui.py:71
+#: async_rutube_downloader/ui.py:71
 msgid "No folder selected"
 msgstr "Папка не выбрана"
 
-#: src/ui.py:78
+#: async_rutube_downloader/ui.py:78
 msgid "Enter RuTube URL or Video ID"
 msgstr "Введите URL или ID видео на RuTube"
 
-#: src/ui.py:89
+#: async_rutube_downloader/ui.py:89
 msgid "Get Video Info"
 msgstr "Проверить"
 
-#: src/ui.py:108
+#: async_rutube_downloader/ui.py:108
 msgid "Download"
 msgstr "Загрузить"
 
-#: src/ui.py:139 src/ui.py:140
+#: async_rutube_downloader/ui.py:139 async_rutube_downloader/ui.py:140
 msgid "Download Complete"
 msgstr "Загрузка завершена"
 
-#: src/ui.py:178
+#: async_rutube_downloader/ui.py:178
 msgid "Please enter a video URL before proceeding."
 msgstr "Пожалуйста, введите URL видео перед продолжением."

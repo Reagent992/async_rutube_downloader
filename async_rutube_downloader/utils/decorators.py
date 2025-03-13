@@ -5,7 +5,7 @@ from typing import Any, TypeVar
 
 from aiohttp import ClientError
 
-from utils.logger import get_logger
+from async_rutube_downloader.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -11,7 +11,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
@@ -23,77 +23,77 @@ jobs:
     defaults:
       run:
         shell: bash
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.12
-      id: setup-python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-        cache: 'pip'
-    
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-        version: 2.0.0
 
-    - name: Load cached pip wheels
-      id: cached-pip-wheels
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-    
-    - name: Install dependencies
-      run: |
-        poetry install --no-interaction --with dev
-        source $VENV
-    
-    - name: Build with PyInstaller
-      run: |
-        source $VENV
-        poetry run pyinstaller ./src/run_ui.py --path ./src/ --clean --onefile --noconsole --add-data "locales:locales"
-    
-    - name: Rename binary for Windows
-      if: matrix.os == 'windows-latest'
-      run: mv dist/run_ui.exe dist/rutube_downloader.exe
-    
-    - name: Rename binary for Unix
-      if: matrix.os == 'ubuntu-latest'
-      run: mv dist/run_ui dist/rutube_downloader
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: binaries-${{ matrix.os }}
-        path: dist/rutube_downloader*
-        retention-days: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          version: 2.0.0
+
+      - name: Load cached pip wheels
+        id: cached-pip-wheels
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --extras dev --no-interaction
+          source $VENV
+
+      - name: Build with PyInstaller
+        run: |
+          source $VENV
+          poetry run pyinstaller ./async_rutube_downloader/run_ui.py --path ./async_rutube_downloader/ --clean --onefile --noconsole --add-data "locales:locales"
+
+      - name: Rename binary for Windows
+        if: matrix.os == 'windows-latest'
+        run: mv dist/run_ui.exe dist/rutube_downloader.exe
+
+      - name: Rename binary for Unix
+        if: matrix.os == 'ubuntu-latest'
+        run: mv dist/run_ui dist/rutube_downloader
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ matrix.os }}
+          path: dist/rutube_downloader*
+          retention-days: 1
 
   release:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          binaries-*/rutube_downloader*
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        tag_name: ${{ github.ref_name }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            binaries-*/rutube_downloader*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

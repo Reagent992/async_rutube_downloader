@@ -1,14 +1,14 @@
 # How to install project locally
-1. [Install poetry](https://python-poetry.org/)
+1. [Install poetry](https://python-poetry.org/) use another package manager that supports **pyproject.toml** (read about **uv** lower)
 2. Copy project `git clone https://github.com/Reagent992/async_rutube_downloader.git`
 3. `cd async_rutube_downloader`
-4. `poetry install`
-5. `poetry run python ./src/run_ui.py`
+4. `poetry install` or `poetry install --extras dev` to install all dev dependencies
+5. `poetry run python ./async_rutube_downloader/run_ui.py` or just `run_ui`
 
 
 # Dev notes
 - Looks like python installed by **UV** doesn't provide **TKinter** support. So i've switched to **poetry** and **pyenv**.
-- build executable command: `poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole`
+- build executable command: `poetry run pyinstaller ./async_rutube_downloader/run_ui.py  --path ./async_rutube_downloader/ --clean --onefile --noconsole` or just `make build`
 
 
 

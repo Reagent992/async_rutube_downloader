@@ -2,7 +2,7 @@ import asyncio
 from asyncio import AbstractEventLoop
 from threading import Thread
 
-from ui import DownloaderUI
+from async_rutube_downloader.ui import DownloaderUI
 
 
 class ThreadedEventLoop(Thread):
@@ -25,8 +25,7 @@ class ThreadedEventLoop(Thread):
         """
         self._loop.run_forever()
 
-
-if __name__ == "__main__":
+def main() -> None:
     loop = asyncio.new_event_loop()
 
     asyncio_thread = ThreadedEventLoop(loop)
@@ -40,3 +39,6 @@ if __name__ == "__main__":
     Create the Tkinter application, and start its main event loop.
     """
     app.mainloop()
+
+if __name__ == "__main__":
+    main()

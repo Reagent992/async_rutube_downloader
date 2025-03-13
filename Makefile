@@ -3,7 +3,7 @@ DOMAIN = messages
 # Directory where localization files are stored
 LOCALEDIR = locales
 # Source code files to extract translations from
-SRC = $(shell find src -type f -name "*.py")
+SRC = $(shell find async_rutube_downloader -type f -name "*.py")
 # List of supported languages
 LANGUAGES_FILE = $(LOCALEDIR)/languages.txt
 LANGUAGES = $(shell cat $(LANGUAGES_FILE))
@@ -43,4 +43,4 @@ clean:
 
 # Build executable
 build:
-	poetry run pyinstaller ./src/run_ui.py  --path ./src/ --clean --onefile --noconsole --add-data "locales:locales"
+	poetry run pyinstaller ./async_rutube_downloader/run_ui.py  --path ./async_rutube_downloader/ --clean --onefile --noconsole --add-data "locales:locales"

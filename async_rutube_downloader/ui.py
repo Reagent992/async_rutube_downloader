@@ -8,10 +8,10 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
-from downloader import Downloader
-from settings import _
-from utils.create_session import create_aiohttp_session
-from utils.exceptions import (
+from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.settings import _
+from async_rutube_downloader.utils.create_session import create_aiohttp_session
+from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
     DownloaderIsNotInitializerError,
     InvalidURLError,
