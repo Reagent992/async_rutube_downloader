@@ -1,7 +1,8 @@
 import asyncio
+import time
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from aiohttp import ClientError
 
@@ -9,7 +10,7 @@ from async_rutube_downloader.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-Function = TypeVar("Function", bound=Callable[..., Awaitable[Any]])
+AsyncFunc = TypeVar("AsyncFunc", bound=Callable[..., Awaitable[Any]])
 
 
 def retry(
@@ -18,7 +19,7 @@ def retry(
     max_retries: int = 3,
     retry_delay: float = 0.5,
     retry_on_exception: type[Exception] = ClientError,
-) -> Callable[[Function], Function]:
+) -> Callable[[AsyncFunc], AsyncFunc]:
     """
     Decorator that calls a function multiple times
     if it raises an exception.
@@ -40,7 +41,7 @@ def retry(
             Defaults to ClientError.
     """
 
-    def decorator(func: Function) -> Function:
+    def decorator(func: AsyncFunc) -> AsyncFunc:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
             for _ in range(max_retries):
@@ -48,13 +49,30 @@ def retry(
                     return await func(*args, **kwargs)
                 except retry_on_exception as e:
                     logger.info(
-                        f"Connection error: {e} - "
-                        f"Retrying in {retry_delay} seconds..."
+                        "Connection error: %s - Retrying in %s seconds...",
+                        e,
+                        retry_delay,
                     )
                     await asyncio.sleep(retry_delay)
-            logger.info(f"Failed to connect after {max_retries} attempts.")
+            logger.info("Failed to connect after %s attempts.", max_retries)
             raise exception_to_raise(exception_text)
 
-        return wrapper  # type: ignore
+        return cast(AsyncFunc, wrapper)
 
     return decorator
+
+
+def log_download_time(func: AsyncFunc) -> AsyncFunc:
+    """Simply tracks the function work time and logs it."""
+
+    @wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+        start_time = time.time()
+        result = await func(*args, **kwargs)
+        end_time = time.time()
+        total_seconds = round(end_time - start_time)
+        minutes, seconds = divmod(total_seconds, 60)
+        logger.info("Downloaded in %s minutes, %s seconds", minutes, seconds)
+        return result
+
+    return cast(AsyncFunc, wrapper)

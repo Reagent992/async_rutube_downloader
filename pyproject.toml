@@ -27,6 +27,7 @@ dev = [
 
 [project.scripts]
 run_ui = 'async_rutube_downloader.run_ui:main'
+run_cli = 'async_rutube_downloader.run_cli:main'
 
 [build-system]
 requires = ["poetry-core>=2.0"]

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-01 04:00+0300\n"
+"POT-Creation-Date: 2025-03-19 18:06+0300\n"
 "PO-Revision-Date: 2025-03-01 02:57+0300\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -23,13 +23,17 @@ msgstr ""
 msgid ""
 "Failed to fetch video data. The URL might be incorrect, or there may be a "
 "connection issue."
-msgstr "Не удалось получить данные о видео. URL может быть неправильным, или возникла проблема с соединением."
+msgstr ""
+"Не удалось получить данные о видео. URL может быть неправильным, или "
+"возникла проблема с соединением."
 
 #: async_rutube_downloader/ui.py:30
 msgid ""
 "A network issue occurred while downloading a video segment. Please check "
 "your internet connection and retry."
-msgstr "Произошла ошибка сети при скачивании сегмента видео. Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова."
+msgstr ""
+"Произошла ошибка сети при скачивании сегмента видео. Пожалуйста, проверьте "
+"ваше интернет-соединение и попробуйте снова."
 
 #: async_rutube_downloader/ui.py:58
 msgid "Rutube Downloader"
@@ -62,3 +66,141 @@ msgstr "Загрузка завершена"
 #: async_rutube_downloader/ui.py:178
 msgid "Please enter a video URL before proceeding."
 msgstr "Пожалуйста, введите URL видео перед продолжением."
+
+#: async_rutube_downloader/run_cli.py:35
+msgid ""
+"\n"
+"This CLI utility allows you to download videos from Rutube.\n"
+" - You can download a single video or multiple videos by providing a file "
+"with URLs.\n"
+" - By default, videos from a file will be downloaded in the best available "
+"quality.\n"
+msgstr ""
+"\n"
+"Эта утилита командной строки позволяет загружать видео с Rutube.\n"
+" - Вы можете загрузить одно видео или несколько видео, указав файл с URL.\n"
+" - По умолчанию видео из файла будут загружаться в наилучшем доступном "
+"качестве.\n"
+
+#: async_rutube_downloader/run_cli.py:42
+msgid ""
+"\n"
+"Usage examples:\n"
+" - Download single video:\n"
+"      [async_rutube_downloader] 365ae8f40a2ffd2a5901ace4db799de7\n"
+"      [async_rutube_downloader] https://rutube.ru/video/"
+"365ae8f40a2ffd2a5901ace4db799de7/\n"
+"      [async_rutube_downloader] https://rutube.ru/video/"
+"365ae8f40a2ffd2a5901ace4db799de7/ -q\n"
+" - Download multiple videos:\n"
+"      [async_rutube_downloader] -f ~/path/to/file1.txt\n"
+"      [async_rutube_downloader] -f ~/path/to/file2.txt -d ,\n"
+msgstr ""
+"\n"
+"Примеры использования:\n"
+" - Загрузить одно видео:\n"
+"      [async_rutube_downloader] 365ae8f40a2ffd2a5901ace4db799de7\n"
+"      [async_rutube_downloader] https://rutube.ru/video/"
+"365ae8f40a2ffd2a5901ace4db799de7/\n"
+"      [async_rutube_downloader] https://rutube.ru/video/"
+"365ae8f40a2ffd2a5901ace4db799de7/ -q\n"
+" - Загрузить несколько видео:\n"
+"      [async_rutube_downloader] -f ~/path/to/file1.txt\n"
+"      [async_rutube_downloader] -f ~/path/to/file2.txt -d ,\n"
+
+#: async_rutube_downloader/run_cli.py:55
+msgid ""
+"Resource not found (404) The URL may be incorrect, or the API might be "
+"unavailable."
+msgstr "Ресурс не найден (404) Возможно, указан неверный URL-адрес или API недоступен."
+
+#: async_rutube_downloader/run_cli.py:58
+
+msgid "Invalid URL"
+msgstr "Ошибка недопустимого URL: {}"
+
+#: async_rutube_downloader/run_cli.py:60
+msgid ""
+"Invalid file. The file contains errors or does not meet validation "
+"requirements."
+msgstr "Недопустимый файл. Файл содержит ошибки или не соответствует требованиям."
+
+#: async_rutube_downloader/run_cli.py:122
+msgid "Available qualities:"
+msgstr "Доступные качества:"
+
+#: async_rutube_downloader/run_cli.py:130
+msgid "Select quality. (Enter the corresponding number)"
+msgstr "Выберите качество. (Введите соответствующий номер)"
+
+#: async_rutube_downloader/run_cli.py:139
+msgid "[{}] downloaded in {} minutes, {} seconds"
+msgstr "[{}] загружено за {} минут, {} секунд"
+
+#: async_rutube_downloader/run_cli.py:144
+msgid "[{}] saved to {}"
+msgstr "[{}] сохранено в {}"
+
+#: async_rutube_downloader/run_cli.py:149
+msgid "Download cancelled"
+msgstr "Загрузка отменена"
+
+#: async_rutube_downloader/run_cli.py:175
+msgid "[{}] download started"
+msgstr "[{}] загрузка начата"
+
+#: async_rutube_downloader/run_cli.py:204
+msgid ""
+"Report: Downloaded {} videos, Invalid urls {}, it takes {} minutes, {} "
+"seconds"
+msgstr ""
+"Отчет: Загружено {} видео, Недопустимых URL {}, заняло {} минут, {} секунд"
+
+#: async_rutube_downloader/run_cli.py:230
+msgid "Invalid URL Error: {}"
+msgstr "Ошибка недопустимого URL: {}"
+
+#: async_rutube_downloader/run_cli.py:242
+msgid "URL or ID of the Rutube video"
+msgstr "URL или ID Rutube видео"
+
+#: async_rutube_downloader/run_cli.py:250
+msgid "Output directory (default: current working directory)"
+msgstr "Каталог вывода (по умолчанию: текущий каталог)"
+
+#: async_rutube_downloader/run_cli.py:256
+msgid "Select video quality interactively"
+msgstr "Выберите качество видео в интерактивном режиме"
+
+#: async_rutube_downloader/run_cli.py:259
+msgid "Multiple videos download"
+msgstr "Загрузить несколько видео"
+
+#: async_rutube_downloader/run_cli.py:272
+msgid "Path to the file with URLs"
+msgstr "Путь до файла с ссылками"
+
+#: async_rutube_downloader/run_cli.py:279
+msgid "Delimiter between URLs in the file(default: \\n)"
+msgstr "Разделитель между ссылками в файле (по умолчанию: \\n)"
+
+#: async_rutube_downloader/run_cli.py:286
+msgid "Cancelling download..."
+msgstr "Загрузка отменяется..."
+
+#: async_rutube_downloader/run_cli.py:302
+msgid "Download directory: {}"
+msgstr "Каталог загрузки: {}"
+
+#: async_rutube_downloader/run_cli.py:334
+msgid "No such file or directory: {}"
+msgstr "Каталог загрузки: {}"
+
+#~ msgid "[{}] has been downloaded successfully"
+#~ msgstr "[{}] успешно загружено"
+
+#~ msgid "Path to the file(default: current working directory)"
+#~ msgstr "Путь к файлу (по умолчанию: текущий рабочий каталог)"
+
+#~ msgid "Error"
+#~ msgstr "Ошибка"

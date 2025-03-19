@@ -7,17 +7,20 @@ English / [Russian](./README_RU.md)
 Small project with one main function - download a video from RuTube(it's a russian copy of YouTube).
 
 ## How to use it?
-
-- Simple way: Download executable file from [Releases](https://github.com/Reagent992/async_rutube_downloader/releases/latest).
-- Hard way: [install project](./dev.md)
+### UI
+- Download executable file from [Releases](https://github.com/Reagent992/async_rutube_downloader/releases/latest).
 
 ![screen_cast](screen_cast.gif)
+
+### [Source code](./dev.md)
 
 # About
 This project was created for learning purposes and was inspired by a similar synchronous library and a book about async.
 
 ## Technical Features
-- Progress bar displays the real download progress.
+- TKinter UI
+- `argparse`(stdlib) CLI
+- The honest progress bar shows the actual download progress.
 - UI and loading work in different threads.
 - UI localization.
 - The async version allows you to use the full speed of your internet connection.

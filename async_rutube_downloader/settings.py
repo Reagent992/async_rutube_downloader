@@ -6,6 +6,7 @@ from async_rutube_downloader.utils.locale import get_locale, get_resource_path
 # Constants
 MINUTE: Final = 60
 RUTUBE_API_LINK: Final = r"https://rutube.ru/api/play/options/{}/?no_404=true&referer=https%253A%252F%252Frutube.ru&pver=v2"
+VIDEO_FORMAT = "mp4"
 # regex for video id.
 VIDEO_ID_REGEX: Final = r"(?a)(?<=video\/)\w+"
 # regex for video url validation

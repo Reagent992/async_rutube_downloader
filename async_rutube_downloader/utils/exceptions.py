@@ -31,3 +31,10 @@ class UploadDirectoryNotSelectedError(UIRutubeDownloaderError):
 
 class DownloaderIsNotInitializerError(UIRutubeDownloaderError):
     """You mist initialize Downloader object first."""
+
+
+class CLIRutubeDownloaderError(Exception):
+    """Base class for all errors raised by the CLI."""
+
+
+class CLIFileError(CLIRutubeDownloaderError): ...

@@ -1,6 +1,5 @@
 import asyncio
 import re
-import time
 from collections.abc import Callable
 from pathlib import Path
 
@@ -12,13 +11,13 @@ from slugify import slugify
 from async_rutube_downloader.playlist import MasterPlaylist, Qualities
 from async_rutube_downloader.settings import (
     CHUNK_SIZE,
-    MINUTE,
     RUTUBE_API_LINK,
     TEST_VIDEO_URL,
+    VIDEO_FORMAT,
     VIDEO_ID_REGEX,
 )
 from async_rutube_downloader.utils.create_session import create_aiohttp_session
-from async_rutube_downloader.utils.decorators import retry
+from async_rutube_downloader.utils.decorators import log_download_time, retry
 from async_rutube_downloader.utils.descriptors import UrlDescriptor
 from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
@@ -29,6 +28,7 @@ from async_rutube_downloader.utils.exceptions import (
     SegmentDownloadError,
 )
 from async_rutube_downloader.utils.logger import get_logger
+from async_rutube_downloader.utils.miscellaneous import resolve_file_name
 from async_rutube_downloader.utils.type_hints import APIResponseDict
 
 logger = get_logger(__name__)
@@ -79,10 +79,11 @@ class Downloader:
         )
         self._auto_close_session = auto_close_session
         self.__api_response: APIResponseDict | None = None
-        self.__amount_of_chunks = 0
+        self.__total_chunks = 0
         self.__completed_requests = 0
         self.__refresh_rate = 1
         self.__master_playlist_url: str = ""
+        self.__download_cancelled = False
 
     async def fetch_video_info(self) -> Qualities:
         """Fetch video info from Rutube API."""
@@ -124,6 +125,7 @@ class Downloader:
             selected_quality_obj.uri
         )
 
+    @log_download_time
     async def download_video(self) -> None:
         """
         Asynchronously downloads a video by fetching its segments
@@ -136,36 +138,44 @@ class Downloader:
         """
         if self._master_playlist is None:
             raise MasterPlaylistInitializationError
-        start_time = time.time()
         if self._selected_quality is None:
             await self.__select_best_quality()
         assert self._selected_quality
-        segments = self._selected_quality.segments
-        self.__amount_of_chunks = len(segments)
-        file_name = f"{self._filename}.mp4"
-        self.__refresh_rate = len(segments) // self.__amount_of_chunks
+        self.segments = self._selected_quality.segments
+        self.__total_chunks = len(self.segments)
+        self.__refresh_rate = len(self.segments) // self.__total_chunks
+        self.file = resolve_file_name(
+            self._upload_directory, self._filename, VIDEO_FORMAT
+        )
 
         async with aiofiles.open(
-            self._upload_directory / file_name, mode="wb"
+            self.file,
+            mode="wb",
         ) as file:
-            for i in range(0, len(segments), CHUNK_SIZE):
+            await self._download_video(file)
+
+        if self._auto_close_session:
+            await self.close()
+
+    async def _download_video(self, file) -> None:
+        for i in range(0, len(self.segments), CHUNK_SIZE):
+            if not self.__download_cancelled:
                 download_tasks = [
                     asyncio.create_task(self._download_segment(segment))
-                    for segment in segments[i : i + CHUNK_SIZE]
+                    for segment in self.segments[i : i + CHUNK_SIZE]
                 ]
                 downloaded_segments = await asyncio.gather(*download_tasks)
                 await file.writelines(downloaded_segments)
+            else:
+                break
 
-        end_time = time.time()
-        self.total_download_duration = round(
-            (end_time - start_time) / MINUTE, 1
-        )
-        logger.info(
-            f"Downloaded {self.video_title} in "
-            f"{self.total_download_duration} minutes"
-        )
-        if self._auto_close_session:
-            await self.close()
+    def interrupt_download(self) -> None:
+        """Will stop the next chunk of video segments from downloading."""
+        logger.info("Download is cancelled")
+        self.__download_cancelled = True
+
+    def is_interrupted(self) -> bool:
+        return self.__download_cancelled
 
     async def close(self) -> None:
         if not self._session.closed:
@@ -219,9 +229,9 @@ class Downloader:
         requests and the total requests."""
         if self._callback and (
             self.__completed_requests % self.__refresh_rate == 0
-            or self.__completed_requests == self.__amount_of_chunks
+            or self.__completed_requests == self.__total_chunks
         ):
-            self._callback(self.__completed_requests, self.__amount_of_chunks)
+            self._callback(self.__completed_requests, self.__total_chunks)
 
     @staticmethod
     def __validate_selected_quality(selected_quality: tuple[int, int]) -> bool:
