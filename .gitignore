@@ -19,3 +19,4 @@ regex test urls.md
 sandbox
 app.log
 .coverage
+coverage.xml
