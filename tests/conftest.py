@@ -14,6 +14,7 @@ MASTER_PLAYLIST_FIXTURE = Path("tests/fixtures/master_playlist_fixture.m3u8")
 VIDEO_FILE_PLAYLIST_FIXTURE = Path(
     "tests/fixtures/video_file_playlist_fixture.mp4.m3u8"
 )
+CLI_VIDEO_LIST_ENTER = Path("tests/fixtures/videos_list_enter.txt")
 
 
 @pytest.fixture(scope="function")
@@ -70,3 +71,21 @@ def downloader(
     downloader = Downloader(RUTUBE_LINK, session=mocked_session)
     return downloader
 
+
+@pytest.fixture(scope="function")
+def cli_single_url_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
+    argv = [
+        "async_rutube_downloader",
+        "365ae8f40a2ffd2a5901ace4db799de7",
+    ]
+    monkeypatch.setattr("sys.argv", argv)
+
+
+@pytest.fixture(scope="function")
+def cli_file_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
+    argv = [
+        "async_rutube_downloader",
+        "-f",
+        str(CLI_VIDEO_LIST_ENTER),
+    ]
+    monkeypatch.setattr("sys.argv", argv)
