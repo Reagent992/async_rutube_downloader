@@ -24,6 +24,7 @@ from async_rutube_downloader.utils.miscellaneous import (
 from async_rutube_downloader.utils.type_hints import Qualities
 from async_rutube_downloader.utils.validators import (
     cli_quality_validator,
+    cli_validate_path,
     cli_validate_urls_file,
 )
 
@@ -60,6 +61,12 @@ INVALID_FILE_ERROR_MSG = _(
     "Invalid file. The file contains errors "
     "or does not meet validation requirements."
 )
+FILE_NOT_FOUND_ERROR_MSG = _("No such file or directory: {}")
+REPORT_MULTIPLE_URLS = _(
+    "Report: Downloaded {} videos, "
+    "Invalid urls {}, it takes {} minutes, {} seconds"
+)
+DOWNLOAD_DIR = _("Download directory: {}")
 
 
 def create_progress_bar() -> list[str]:
@@ -70,11 +77,11 @@ class CLIDownloader:
     def __init__(
         self,
         cli_args: Namespace,
-        loop: asyncio.AbstractEventLoop,
+        event_loop: asyncio.AbstractEventLoop,
         session: ClientSession,
     ) -> None:
         self.cli_args = cli_args
-        self.loop = loop
+        self.event_loop = event_loop
         self.session = session
         self.progress_bar = create_progress_bar()
         self.downloader: Downloader | None = None
@@ -162,7 +169,7 @@ class CLIDownloader:
     async def _download_single_video(self, url) -> None:
         self.downloader = Downloader(
             url if url else self.cli_args.url,
-            loop=self.loop,
+            loop=self.event_loop,
             callback=self.cli_progress_callback,
             upload_directory=self.cli_args.output,
             session=self.session,
@@ -184,7 +191,6 @@ class CLIDownloader:
     async def get_urls_list_from_file(
         self, user_file: Path, delimiter: str
     ) -> list[str]:
-        # FIXME: Пустой файл.
         async with aiofiles.open(user_file) as file:
             raw_result = await file.read()
             result = raw_result.strip().split(delimiter)
@@ -200,10 +206,9 @@ class CLIDownloader:
             total_seconds = round(end_time - start_time)
             minutes, seconds = divmod(total_seconds, 60)
             print(
-                _(
-                    "Report: Downloaded {} videos, Invalid urls {}"
-                    ", it takes {} minutes, {} seconds"
-                ).format(success_downloads, invalid_urls, minutes, seconds)
+                REPORT_MULTIPLE_URLS.format(
+                    success_downloads, invalid_urls, minutes, seconds
+                )
             )
 
     async def _download_multiple_videos(self, cli_args) -> tuple[int, int]:
@@ -245,7 +250,7 @@ def parse_args(parser: ArgumentParser) -> Namespace:
         "-o",
         "--output",
         metavar="",
-        type=Path,
+        type=cli_validate_path,
         default=Path.cwd(),
         help=_("Output directory (default: current working directory)"),
     )
@@ -282,29 +287,38 @@ def parse_args(parser: ArgumentParser) -> Namespace:
     return parser.parse_args()
 
 
-def _interrupt_and_report(cli_downloader: CLIDownloader) -> None:
-    print("\n", _("Cancelling download..."))
-    cli_downloader.interrupt_download()
-
-
-def main() -> None:
-    # Manually handling the eventloop, to do a Graceful Shutdowns.
-    event_loop = asyncio.new_event_loop()
-    session = create_aiohttp_session(event_loop)
-
-    parser = ArgumentParser(
+def create_parser() -> ArgumentParser:
+    return ArgumentParser(
         prog=CLI_NAME,
         description=CLI_DESCRIPTION,
         epilog=CLI_EPILOG,
         formatter_class=RawDescriptionHelpFormatter,
     )
+
+
+def _interrupt_and_report(cli_downloader: CLIDownloader) -> None:
+    print("\n", _("Cancelling download..."))
+    cli_downloader.interrupt_download()
+
+
+def main(
+    event_loop: asyncio.AbstractEventLoop | None = None,
+    session: ClientSession | None = None,
+) -> None:
+    # Manually handling the eventloop, to do a Graceful Shutdowns.
+    parser = create_parser()
     cli_args = parse_args(parser)
-    print(_("Download directory: {}").format(cli_args.output))
+    if not event_loop:
+        event_loop = asyncio.new_event_loop()
+    if not session:
+        session = create_aiohttp_session(event_loop)
     cli_downloader = CLIDownloader(cli_args, event_loop, session)
-    event_loop.add_signal_handler(
-        signal.SIGINT, lambda: _interrupt_and_report(cli_downloader)
-    )
+    print(_("Download directory: {}").format(cli_args.output))
+
     try:
+        event_loop.add_signal_handler(
+            signal.SIGINT, lambda: _interrupt_and_report(cli_downloader)
+        )
         if cli_args.url:
             event_loop.run_until_complete(
                 cli_downloader.download_single_video()
@@ -331,9 +345,9 @@ def main() -> None:
             exc_info=True,
         )
     except FileNotFoundError:
-        print(_("No such file or directory: {}".format(cli_args.file)))
+        print(_(FILE_NOT_FOUND_ERROR_MSG.format(cli_args.output)))
         logger.info(
-            "No such file or directory: {}".format(cli_args.file),
+            FILE_NOT_FOUND_ERROR_MSG.format(cli_args.output),
             exc_info=True,
         )
     except CLIFileError:

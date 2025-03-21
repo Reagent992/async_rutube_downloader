@@ -1,16 +1,19 @@
-import asyncio
 from asyncio import AbstractEventLoop
 
 from aiohttp import ClientSession, ClientTimeout
 
+from async_rutube_downloader.utils.miscellaneous import get_or_create_loop
+
 
 def create_aiohttp_session(
-    loop: AbstractEventLoop = asyncio.new_event_loop(),
+    loop: AbstractEventLoop | None = None,
 ) -> ClientSession:
     """
     Creating an aiohttp session with preset timeouts.
     If the event loop is not passed, a new one will be created.
     """
+    if not loop:
+        loop = get_or_create_loop()
     session_timeout = ClientTimeout(
         total=None,
         # The video may be really long,

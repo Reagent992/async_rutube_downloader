@@ -1,3 +1,4 @@
+import asyncio
 import tomllib
 from pathlib import Path
 from typing import Literal
@@ -31,3 +32,12 @@ def resolve_file_name(directory: Path, file_name: str, format: str) -> Path:
             continue
         else:
             return new_file
+
+
+def get_or_create_loop() -> asyncio.AbstractEventLoop:
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop

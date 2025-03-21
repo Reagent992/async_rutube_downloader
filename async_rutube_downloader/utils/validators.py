@@ -1,3 +1,7 @@
+from argparse import ArgumentTypeError
+from pathlib import Path
+
+
 def cli_quality_validator(
     user_input: str | None, qualities: dict[int, tuple[int, int]]
 ) -> bool:
@@ -28,3 +32,12 @@ def cli_validate_urls_file(urls: list[str]) -> bool:
     if not any(bool(url) for url in urls):
         return False
     return True
+
+
+def cli_validate_path(output: str) -> Path:
+    path = Path(output)
+    if not path.exists():
+        raise ArgumentTypeError(
+            "Directory '{}' does not exist.".format(output)
+        )
+    return path
