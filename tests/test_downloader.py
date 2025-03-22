@@ -4,7 +4,6 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import aiofiles
-import m3u8
 import pytest
 from m3u8 import M3U8
 
@@ -12,6 +11,7 @@ from async_rutube_downloader.downloader import Downloader
 from async_rutube_downloader.settings import (
     TEST_VIDEO_ID,
     URL_FOR_ID_TEMPLATE,
+    VIDEO_FORMAT,
     FULL_HD_1080p,
 )
 from async_rutube_downloader.utils.exceptions import (
@@ -20,6 +20,7 @@ from async_rutube_downloader.utils.exceptions import (
     QualityError,
 )
 from async_rutube_downloader.utils.type_hints import APIResponseDict, Qualities
+from tests.conftest import RUTUBE_LINK
 from tests.test_utils import validate_qualities
 
 # There is few protected methods calls, through mangled names,
@@ -27,23 +28,19 @@ from tests.test_utils import validate_qualities
 
 
 @pytest.mark.asyncio
-async def test_download_video(
-    downloader: Downloader, video_file_playlist_fixture: str
-) -> None:
-    prev_get_calls = 2  # fetch_video_info and MasterPlaylist
+async def test_download_video(downloader: Downloader, tmp_path: Path) -> None:
+    get_calls = 3
+    # 3 is _get_api_response, __get_master_playlist, and __get_selected_quality
+    downloader._upload_directory = tmp_path
     await downloader.fetch_video_info()
-    # FIXME: why is this necessary? autoselect_quality should do it.
-    downloader._selected_quality = m3u8.loads(
-        video_file_playlist_fixture, downloader.url
-    )
     with patch.object(aiofiles, "open") as aiofiles_open:
         await downloader.download_video()
         aiofiles_open.assert_called_once_with(
-            Path.cwd() / f"{downloader._filename}.mp4", mode="wb"
+            tmp_path / f"{downloader._filename}.{VIDEO_FORMAT}", mode="wb"
         )
         assert (
             downloader._session.get.call_count  # type: ignore
-            == len(downloader._selected_quality.segments) + prev_get_calls
+            == len(downloader._selected_quality.segments) + get_calls  # type: ignore
         )
 
 
@@ -72,7 +69,14 @@ async def test_select_quality_raise_error_master_playlist_not_initialized(
 
 @pytest.mark.parametrize(
     "value",
-    [("1920", "1080"), (list(), list()), (dict(), dict()), (object, object)],
+    [
+        ("1920", "1080"),
+        (1920.0, 1080.0),
+        (list(), list()),
+        (tuple(), tuple()),
+        (dict(), dict()),
+        (object, object),
+    ],
 )
 @pytest.mark.asyncio
 async def test_validate_selected_quality(
@@ -139,17 +143,17 @@ async def test_get_api_response(
 
 
 @pytest.mark.asyncio
-async def test_create_downloader(url: str, mocked_session: AsyncMock) -> None:
+async def test_create_downloader(mocked_session: AsyncMock) -> None:
     """Create correct Downloader object."""
 
     def dummy_callback(arg: int, arg2: int): ...
 
     loop = asyncio.new_event_loop()
 
-    obj = Downloader(url, loop, dummy_callback, session=mocked_session)
+    obj = Downloader(RUTUBE_LINK, loop, dummy_callback, session=mocked_session)
 
     assert isinstance(obj, Downloader)
-    assert obj.url == url
+    assert obj.url == RUTUBE_LINK
     assert obj._loop == loop
     assert obj._callback == dummy_callback
 

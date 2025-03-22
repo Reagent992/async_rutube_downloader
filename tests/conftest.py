@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Final
 from unittest.mock import AsyncMock, create_autospec
 
 import pytest
@@ -8,7 +9,10 @@ from aiohttp import ClientSession
 from async_rutube_downloader.downloader import Downloader
 from async_rutube_downloader.utils.type_hints import APIResponseDict
 
-RUTUBE_LINK = "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+RUTUBE_LINK: Final[str] = (
+    "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
+)
+RUTUBE_ID: Final[str] = "365ae8f40a2ffd2a5901ace4db799de7"
 API_RESPONSE_FIXTURE = Path("tests/fixtures/api_response_fixture.json")
 MASTER_PLAYLIST_FIXTURE = Path("tests/fixtures/master_playlist_fixture.m3u8")
 VIDEO_FILE_PLAYLIST_FIXTURE = Path(
@@ -31,12 +35,6 @@ def get_response_mock(mocked_session: AsyncMock) -> AsyncMock:
     get_response_mock.__aenter__.return_value = get_response_mock
     mocked_session.get.return_value = get_response_mock
     return get_response_mock
-
-
-@pytest.fixture(scope="session")
-def url() -> str:
-    """Real Rutube URL."""
-    return RUTUBE_LINK
 
 
 @pytest.fixture(scope="session")
@@ -64,10 +62,14 @@ def downloader(
     get_response_mock: AsyncMock,
     api_response_fixture: APIResponseDict,
     master_playlist_fixture: str,
+    video_file_playlist_fixture: str,
 ) -> Downloader:
     """Downloader object Fixture with ClientSession and session.get mocked."""
     get_response_mock.json.return_value = api_response_fixture
-    get_response_mock.text.return_value = master_playlist_fixture
+    get_response_mock.text.side_effect = (
+        master_playlist_fixture,
+        video_file_playlist_fixture,
+    )
     downloader = Downloader(RUTUBE_LINK, session=mocked_session)
     return downloader
 
@@ -76,7 +78,7 @@ def downloader(
 def cli_single_url_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
     argv = [
         "async_rutube_downloader",
-        "365ae8f40a2ffd2a5901ace4db799de7",
+        RUTUBE_ID,
     ]
     monkeypatch.setattr("sys.argv", argv)
 
