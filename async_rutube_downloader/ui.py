@@ -2,14 +2,16 @@ import asyncio
 import tkinter
 from asyncio import AbstractEventLoop, new_event_loop
 from concurrent.futures import ThreadPoolExecutor
+from enum import Enum, auto
 from pathlib import Path
 from queue import Queue
 from tkinter import filedialog, messagebox
+from typing import Final
 
 import customtkinter as ctk
 
 from async_rutube_downloader.downloader import Downloader
-from async_rutube_downloader.settings import _
+from async_rutube_downloader.settings import DOWNLOAD_CANCELED, _
 from async_rutube_downloader.utils.create_session import create_aiohttp_session
 from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
@@ -21,15 +23,26 @@ from async_rutube_downloader.utils.exceptions import (
     UploadDirectoryNotSelectedError,
 )
 
-INVALID_URL_MSG = "The provided URL is invalid. Please check and try again."
-API_RESPONSE_ERROR_MSG = _(
+INVALID_URL_MSG: Final[str] = (
+    "The provided URL is invalid. Please check and try again."
+)
+API_RESPONSE_ERROR_MSG: Final[str] = _(
     "Failed to fetch video data. "
     "The URL might be incorrect, or there may be a connection issue."
 )
-SEGMENT_DOWNLOAD_ERROR_MSG = _(
+SEGMENT_DOWNLOAD_ERROR_MSG: Final[str] = _(
     "A network issue occurred while downloading a video "
     "segment. Please check your internet connection and retry."
 )
+ERROR_COLOR: Final[str] = "red"
+DOWNLOAD: Final[str] = _("Download")
+CANCEL_DOWNLOAD: Final[str] = _("Cancel download")
+
+
+class State(Enum):
+    cancel = auto()
+    disable = auto()
+    normal = auto()
 
 
 class DownloaderUI(ctk.CTk):
@@ -83,12 +96,12 @@ class DownloaderUI(ctk.CTk):
         # Get video info
         self._fetch_result_label = ctk.CTkLabel(self, text="")
         self._fetch_result_label.grid(column=0, row=2, padx=10, pady=10)
-
+        # Get video info button
         self._video_info_button = ctk.CTkButton(
             self,
             text=_("Get Video Info"),
             command=self._run_fetch_concurrently,
-            state="disabled",
+            state=tkinter.DISABLED,
         )
         self._video_info_button.grid(column=1, row=1, padx=10, pady=10)
 
@@ -107,7 +120,7 @@ class DownloaderUI(ctk.CTk):
             self,
             text=_("Download"),
             command=self.start_download,
-            state="disabled",
+            state=tkinter.DISABLED,
         )
         self._download_button.grid(column=1, row=3, padx=10, pady=10)
 
@@ -134,13 +147,16 @@ class DownloaderUI(ctk.CTk):
         """Update the progress bar.
         Call only from main thread."""
         if progress_bar_value == 100 and self._download:
-            self._progress_bar.set(1)
-            messagebox.showinfo(
+            self.__thread_pool.submit(
+                messagebox.showinfo,
                 _("Download Complete"),
                 _("Download Complete"),
-            )  #  TODO: A "Download Complete" alert is shown
+            )
+            #  TODO: A "Download Complete" alert is shown
             # a little bit before the last downloaded chunk is actually saved.
             self._download = None
+            self._progress_bar.set(1)
+            self.change_download_button_state(State.normal)
         else:
             self._progress_bar.set(
                 progress_bar_value / self._progress_bar_divider
@@ -173,31 +189,32 @@ class DownloaderUI(ctk.CTk):
                 this object goes here.
         """
         self._fetch_result_label.configure(text="")
+        self.change_download_button_state(State.normal)
         if not self._url_entry.get():
-            messagebox.showerror(
-                "Error", _("Please enter a video URL before proceeding.")
+            self.__thread_pool.submit(
+                messagebox.showerror,
+                _("Error"),
+                _("Please enter a video URL before proceeding."),
             )
         elif self._upload_directory and self._url_entry.get():
             try:
-                self.__fetch_video_info()
-                self.__fill_qualities()
-                self.__fill_title()
+                self.__thread_pool.submit(self._fetch_video_info)
             except (InvalidURLError, KeyError):
                 self._fetch_result_label.configure(
                     text=INVALID_URL_MSG + self.__error_counter,
-                    text_color="red",
+                    text_color=ERROR_COLOR,
                 )
                 self.__increase_error_counter()
             except (APIResponseError, MasterPlaylistInitializationError):
                 self._fetch_result_label.configure(
                     text=API_RESPONSE_ERROR_MSG + self.__error_counter,
-                    text_color="red",
+                    text_color=ERROR_COLOR,
                 )
                 self.__increase_error_counter()
             except SegmentDownloadError:
                 self._fetch_result_label.configure(
                     text=SEGMENT_DOWNLOAD_ERROR_MSG + self.__error_counter,
-                    text_color="red",
+                    text_color=ERROR_COLOR,
                 )
                 self.__increase_error_counter()
 
@@ -206,6 +223,11 @@ class DownloaderUI(ctk.CTk):
             self.__error_counter = str(int(self.__error_counter) + 1)
         else:
             self.__error_counter = "1"
+
+    def _fetch_video_info(self) -> None:
+        self.__fetch_video_info()
+        self.__fill_qualities()
+        self.__fill_title()
 
     def __fetch_video_info(self) -> None:
         """
@@ -251,7 +273,44 @@ class DownloaderUI(ctk.CTk):
             asyncio.run_coroutine_threadsafe(
                 self._download.download_video(), self._loop
             )
+            self.change_download_button_state(State.cancel)
             self.after(self._refresh_ms, self._poll_queue)
+
+    def change_download_button_state(self, state: State) -> None:
+        states = {
+            State.cancel: {
+                "text": CANCEL_DOWNLOAD,
+                "command": self.cancel_download,
+                "state": tkinter.NORMAL,
+            },
+            State.disable: {
+                "text": DOWNLOAD,
+                "command": None,
+                "state": tkinter.DISABLED,
+            },
+            State.normal: {
+                "text": DOWNLOAD,
+                "command": self.start_download,
+                "state": tkinter.NORMAL,
+            },
+        }
+        self._download_button.configure(**states[state])
+
+    def cancel_download(self) -> None:
+        assert self._download
+        self._download.interrupt_download()
+        self.__thread_pool.submit(
+            messagebox.showinfo, _("Info"), DOWNLOAD_CANCELED
+        )
+        self.change_download_button_state(State.disable)
+        self.clean_ui()
+
+    def clean_ui(self) -> None:
+        """Clean up: title, qualities,progress,bar"""
+        self._video_title_dynamic.configure(text="")
+        self._progress_bar.set(0)
+        self._dropdown.configure(values=[], state=tkinter.DISABLED)
+        self._dropdown.set("")
 
     def __set_quality(self) -> None:
         """
@@ -280,7 +339,6 @@ class DownloaderUI(ctk.CTk):
             self._upload_directory = Path(directory)
             if not self._upload_directory.is_dir():
                 raise ValueError("Selected folder does not exist")
-            self._download_button.configure(state="normal")
             self._video_info_button.configure(state="normal")
 
 
@@ -288,6 +346,6 @@ if __name__ == "__main__":
     app = DownloaderUI()
     app._video_title_dynamic.configure(
         text="don't run this file directly, use run_ui.py",
-        text_color="red",
+        text_color=ERROR_COLOR,
     )
     app.mainloop()
