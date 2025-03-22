@@ -8,7 +8,6 @@ from async_rutube_downloader.run_cli import (
     CLI_DESCRIPTION,
     CLI_EPILOG,
     CLI_NAME,
-    DOWNLOAD_DIR,
     REPORT_MULTIPLE_URLS,
     WIDTH_OF_PROGRESS_BAR,
     create_parser,
@@ -16,6 +15,8 @@ from async_rutube_downloader.run_cli import (
     parse_args,
 )
 from async_rutube_downloader.run_cli import main as cli_main
+from async_rutube_downloader.settings import DOWNLOAD_DIR
+from tests.conftest import RUTUBE_ID
 
 
 def test_create_progress_bar() -> None:
@@ -35,23 +36,17 @@ def test_create_parser() -> None:
 @pytest.mark.parametrize(
     "url,optional_arg",
     [
-        ("https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/", []),
-        ("365ae8f40a2ffd2a5901ace4db799de7", []),
-        ("365ae8f40a2ffd2a5901ace4db799de7", ["-q"]),
-        ("365ae8f40a2ffd2a5901ace4db799de7", ["-o", str(Path.cwd())]),
-        ("365ae8f40a2ffd2a5901ace4db799de7", ["-d", ";"]),
-        ("365ae8f40a2ffd2a5901ace4db799de7", ["-f", "./path/to/file"]),
-        ("365ae8f40a2ffd2a5901ace4db799de7", ["-f", "./path/to/file", "-q"]),
+        (f"https://rutube.ru/video/{RUTUBE_ID}/", []),
+        (RUTUBE_ID, []),
+        (RUTUBE_ID, ["-q"]),
+        (RUTUBE_ID, ["-o", str(Path.cwd())]),
+        (RUTUBE_ID, ["-d", ";"]),
+        (RUTUBE_ID, ["-f", "./path/to/file"]),
+        (RUTUBE_ID, ["-f", "./path/to/file", "-q"]),
+        (RUTUBE_ID, ["-f", "./path/to/file", "-d", ";"]),
+        (RUTUBE_ID, ["-f", "./path/to/file", "-d", ";", "-q"]),
         (
-            "365ae8f40a2ffd2a5901ace4db799de7",
-            ["-f", "./path/to/file", "-d", ";"],
-        ),
-        (
-            "365ae8f40a2ffd2a5901ace4db799de7",
-            ["-f", "./path/to/file", "-d", ";", "-q"],
-        ),
-        (
-            "365ae8f40a2ffd2a5901ace4db799de7",
+            RUTUBE_ID,
             ["-f", "./path/to/file", "-d", ";", "-q", "-o", str(Path.cwd())],
         ),
     ],
@@ -90,7 +85,7 @@ def test_invalid_directory_shows_error_message(
     invalid_path = "fake/path/to/folder"
     test_args = [
         "async_rutube_downloader",
-        "365ae8f40a2ffd2a5901ace4db799de7",
+        RUTUBE_ID,
         "-o",
         invalid_path,
     ]

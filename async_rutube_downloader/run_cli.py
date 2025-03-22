@@ -8,7 +8,18 @@ import aiofiles
 from aiohttp import ClientSession
 
 from async_rutube_downloader.downloader import Downloader
-from async_rutube_downloader.settings import _
+from async_rutube_downloader.settings import (
+    API_RESPONSE_ERROR_MSG,
+    CLI_DESCRIPTION,
+    CLI_EPILOG,
+    CLI_NAME,
+    DOWNLOAD_CANCELED,
+    FILE_NOT_FOUND_ERROR_MSG,
+    INVALID_FILE_ERROR_MSG,
+    INVALID_URL,
+    REPORT_MULTIPLE_URLS,
+    _,
+)
 from async_rutube_downloader.ui import SEGMENT_DOWNLOAD_ERROR_MSG
 from async_rutube_downloader.utils.create_session import create_aiohttp_session
 from async_rutube_downloader.utils.exceptions import (
@@ -32,41 +43,6 @@ logger = get_logger(__name__)
 INDEX_OFFSET = 1
 WIDTH_OF_PROGRESS_BAR = 20
 PROGRESS_BAR_STEP_PERCENT = 5
-CLI_NAME = "async_rutube_downloader"
-CLI_DESCRIPTION = _("""
-This CLI utility allows you to download videos from Rutube.
- - You can download a single video or multiple videos by providing a file with\
- URLs.
- - By default, videos from a file will be downloaded in the best available\
- quality.
-""")
-CLI_EPILOG = _("""
-Usage examples:
- - Download single video:
-      [async_rutube_downloader] 365ae8f40a2ffd2a5901ace4db799de7
-      [async_rutube_downloader]\
- https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
-      [async_rutube_downloader]\
- https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/ -q
- - Download multiple videos:
-      [async_rutube_downloader] -f ~/path/to/file1.txt
-      [async_rutube_downloader] -f ~/path/to/file2.txt -d ,
-""")
-API_RESPONSE_ERROR_MSG = _(
-    "Resource not found (404) "
-    "The URL may be incorrect, or the API might be unavailable."
-)
-INVALID_URL = _("Invalid URL")
-INVALID_FILE_ERROR_MSG = _(
-    "Invalid file. The file contains errors "
-    "or does not meet validation requirements."
-)
-FILE_NOT_FOUND_ERROR_MSG = _("No such file or directory: {}")
-REPORT_MULTIPLE_URLS = _(
-    "Report: Downloaded {} videos, "
-    "Invalid urls {}, it takes {} minutes, {} seconds"
-)
-DOWNLOAD_DIR = _("Download directory: {}")
 
 
 def create_progress_bar() -> list[str]:
@@ -153,7 +129,7 @@ class CLIDownloader:
                 )
             )
         else:
-            print(_("Download cancelled"))
+            print(DOWNLOAD_CANCELED)
 
     async def download_single_video(
         self,
