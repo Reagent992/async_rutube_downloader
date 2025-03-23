@@ -289,17 +289,18 @@ def main(
     if not session:
         session = create_aiohttp_session(event_loop)
     cli_downloader = CLIDownloader(cli_args, event_loop, session)
-    print(_("Download directory: {}").format(cli_args.output))
 
     try:
         event_loop.add_signal_handler(
             signal.SIGINT, lambda: _interrupt_and_report(cli_downloader)
         )
         if cli_args.url:
+            print(_("Download directory: {}").format(cli_args.output))
             event_loop.run_until_complete(
                 cli_downloader.download_single_video()
             )
         elif cli_args.file:
+            print(_("Download directory: {}").format(cli_args.output))
             event_loop.run_until_complete(
                 cli_downloader.download_multiple_videos(cli_args)
             )

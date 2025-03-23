@@ -28,7 +28,10 @@ from async_rutube_downloader.utils.exceptions import (
     SegmentDownloadError,
 )
 from async_rutube_downloader.utils.logger import get_logger
-from async_rutube_downloader.utils.miscellaneous import resolve_file_name
+from async_rutube_downloader.utils.miscellaneous import (
+    get_or_create_loop,
+    resolve_file_name,
+)
 from async_rutube_downloader.utils.type_hints import APIResponseDict
 
 logger = get_logger(__name__)
@@ -45,7 +48,7 @@ class Downloader:
     def __init__(
         self,
         url: str,
-        loop: asyncio.AbstractEventLoop = asyncio.new_event_loop(),
+        loop: asyncio.AbstractEventLoop | None = None,
         callback: Callable[[int, int], None] | None = None,
         upload_directory: Path = Path.cwd(),
         session: ClientSession | None = None,
@@ -68,7 +71,7 @@ class Downloader:
         self.url = url
         self.video_title = "Unknown video"
         self._filename = "Unknown video"
-        self._loop = loop
+        self._loop = loop if loop else get_or_create_loop()
         self._callback = callback
         self._upload_directory = upload_directory
         self._selected_quality: m3u8.M3U8 | None = None
@@ -97,6 +100,7 @@ class Downloader:
             self.__master_playlist_url, self._session
         ).run()
         if self._master_playlist.qualities is not None:
+            # TODO: return probably should be tuple of tuple[int, int]
             return self._master_playlist.qualities
         raise APIResponseError
 

@@ -36,7 +36,7 @@ CHUNK_SIZE: Final[int] = 20
 FULL_HD_1080p: Final[tuple[int, int]] = (1920, 1080)
 HD_720p: Final[tuple[int, int]] = (1280, 720)
 # CLI_TEXT
-CLI_NAME: Final[str] = "async_rutube_downloader"
+CLI_NAME: Final[str] = "rtube-cli"
 CLI_DESCRIPTION: Final[str] = _("""
 This CLI utility allows you to download videos from Rutube.
  - You can download a single video or multiple videos by providing a file with\
@@ -44,18 +44,20 @@ This CLI utility allows you to download videos from Rutube.
  - By default, videos from a file will be downloaded in the best available\
  quality.
 """)
-CLI_EPILOG: Final[str] = _("""
+CLI_EPILOG: Final[str] = _(
+    """
 Usage examples:
  - Download single video:
-      [async_rutube_downloader] 365ae8f40a2ffd2a5901ace4db799de7
-      [async_rutube_downloader]\
+      [{}] 365ae8f40a2ffd2a5901ace4db799de7
+      [{}]\
  https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
-      [async_rutube_downloader]\
+      [{}]\
  https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/ -q
  - Download multiple videos:
-      [async_rutube_downloader] -f ~/path/to/file1.txt
-      [async_rutube_downloader] -f ~/path/to/file2.txt -d ,
-""")
+      [{}] -f ~/path/to/file1.txt
+      [{}] -f ~/path/to/file2.txt -d ,
+""".format(*[CLI_NAME] * 5)
+)
 API_RESPONSE_ERROR_MSG: Final[str] = _(
     "Resource not found (404) "
     "The URL may be incorrect, or the API might be unavailable."
