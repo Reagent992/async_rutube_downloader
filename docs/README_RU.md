@@ -10,10 +10,47 @@
 Небольшой проект с одной основной функцией - скачивание видео с RuTube.
 
 ## Как пользоваться?
+
 ### Графический пользовательский интерфейс
+
 -  [Скачать исполняемый файл в разделе релизы(Releases)](https://github.com/Reagent992/async_rutube_downloader/releases/latest)
 
-![screen_cast](screen_cast.gif)
+[![screen_cast.gif](screen_cast.gif)](https://github.com/Reagent992/async_rutube_downloader/releases/latest)
+
+### Консольный интерфейс
+
+1. Установить библиотеку
+```
+pip install async_rutube_downloader
+```
+2. Запустить
+```
+rtube-cli https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
+```
+[![cli-ru.png](cli-ru.png)](https://pypi.org/project/async_rutube_downloader/)
+
+### Использование в коде
+
+1. Установить библиотеку
+```
+pip install async_rutube_downloader
+```
+2. Пример загрузки видео из кода.
+```python
+import asyncio
+from async_rutube_downloader.downloader import Downloader
+
+async def download():
+    downloader = Downloader(
+        "https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/"
+    )
+    qualities = await downloader.fetch_video_info()
+    await downloader.select_quality(max(qualities.keys()))
+    await downloader.download_video()
+
+asyncio.run(download())
+```
+
 
 ### [Установка исходного кода проекта](./dev.md)
 
@@ -28,14 +65,14 @@
 - UI и загрузка работают в разных потоках.
 - Перевод UI.
 - Асинхронная версия позволяет использовать полную скорость интернет-соединения.
+- [PyInstaller](https://github.com/pyinstaller/pyinstaller) используется для создания исполняемого файла
 
-# Используемые библиотеки:
+## Зависимости
 
 | title                                                           | description                               |
 | --------------------------------------------------------------- | ----------------------------------------- |
 | [m3u8](https://github.com/globocom/m3u8/)                       | Используется для парсинга плейлистов      |
 | [aiohttp](https://github.com/aio-libs/aiohttp)                  | асинхронный http клиент                   |
 | [aiofiles](https://github.com/Tinche/aiofiles)                  | асинхронная работа с файлами              |
-| [PyInstaller](https://github.com/pyinstaller/pyinstaller)       | Создание исполняемого файла               |
 | [slugify ](https://github.com/un33k/python-slugify)             | Преобразование названия видео в имя файла |
 | [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) | Better TKinter UI                         |

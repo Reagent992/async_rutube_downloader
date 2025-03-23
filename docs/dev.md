@@ -42,9 +42,9 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] cli client("in process" and quality choose.).
 - [x] Mass download support[CLI].
 - [x] Cancel download[CLI] (method and button for ui)
-- [ ] tests for cli client
+- [x] Cancel download[UI]
+- [x] tests for cli client
+- [x] pypi library.
 - [ ] add video thumbnail in UI
-- [ ] Cancel download[UI]
 - [ ] continue download
-- [ ] pypi library.
 - [ ] shorts/etc. support
