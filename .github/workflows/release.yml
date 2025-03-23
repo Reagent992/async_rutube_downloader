@@ -117,4 +117,4 @@ jobs:
         uses: JRubics/poetry-publish@v2.1
         with:
           pypi_token: ${{ secrets.POETRY_PYPI_TOKEN_ASYNC_RUTUBE_DOWNLOADER }}
-          python_version: "3.12.9"
+          python_version: "3.12"
