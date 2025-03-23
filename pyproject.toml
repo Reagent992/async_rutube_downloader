@@ -1,6 +1,6 @@
 [project]
 name = "async_rutube_downloader"
-version = "1.3.3"
+version = "1.3.4"
 description = "download video from RuTube"
 authors = [{ name = "Miron Sadykov", email = "MironSadykov@yandex.ru" }]
 readme = "docs/README.md"
