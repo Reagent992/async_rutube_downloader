@@ -128,7 +128,7 @@ def test_cli_download_from_file(
 @pytest.mark.parametrize(
     "entry_point",
     [
-        "run_cli",
+        "rtube-cli",
         ["python", "-m", "async_rutube_downloader"],
         ["python", "async_rutube_downloader/run_cli.py"],
     ],
