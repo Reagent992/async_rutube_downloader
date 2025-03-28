@@ -30,6 +30,7 @@ from async_rutube_downloader.utils.exceptions import (
 )
 from async_rutube_downloader.utils.logger import get_logger
 from async_rutube_downloader.utils.miscellaneous import (
+    get_or_create_loop,
     get_version_from_pyproject,
 )
 from async_rutube_downloader.utils.type_hints import Qualities
@@ -53,11 +54,11 @@ class CLIDownloader:
     def __init__(
         self,
         cli_args: Namespace,
-        event_loop: asyncio.AbstractEventLoop,
         session: ClientSession,
+        event_loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         self.cli_args = cli_args
-        self.event_loop = event_loop
+        self.event_loop = event_loop if event_loop else get_or_create_loop()
         self.session = session
         self.progress_bar = create_progress_bar()
         self.downloader: Downloader | None = None
@@ -288,7 +289,7 @@ def main(
         event_loop = asyncio.new_event_loop()
     if not session:
         session = create_aiohttp_session(event_loop)
-    cli_downloader = CLIDownloader(cli_args, event_loop, session)
+    cli_downloader = CLIDownloader(cli_args, session, event_loop)
 
     try:
         event_loop.add_signal_handler(
