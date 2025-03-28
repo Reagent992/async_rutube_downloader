@@ -7,6 +7,11 @@ import pytest
 from aiohttp import ClientSession
 
 from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.run_cli import (
+    CLIDownloader,
+    create_parser,
+    parse_args,
+)
 from async_rutube_downloader.utils.type_hints import APIResponseDict
 
 RUTUBE_LINK: Final[str] = (
@@ -91,3 +96,12 @@ def cli_file_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
         str(CLI_VIDEO_LIST_ENTER),
     ]
     monkeypatch.setattr("sys.argv", argv)
+
+
+@pytest.fixture(scope="function")
+def cli_downloader(
+    mocked_session: AsyncMock, cli_single_url_fixture: None
+) -> CLIDownloader:
+    parser = create_parser()
+    cli_args = parse_args(parser)
+    return CLIDownloader(cli_args, mocked_session)

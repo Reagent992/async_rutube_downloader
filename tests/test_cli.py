@@ -10,6 +10,7 @@ from async_rutube_downloader.run_cli import (
     CLI_NAME,
     REPORT_MULTIPLE_URLS,
     WIDTH_OF_PROGRESS_BAR,
+    CLIDownloader,
     create_parser,
     create_progress_bar,
     parse_args,
@@ -158,4 +159,21 @@ def test_cli_help_text(
     assert "-o" and "--output" in captured.out
     assert "-f" and "--file" in captured.out
     assert "-d" and "--delimiter" in captured.out
+    assert captured.err == ""
+
+
+def test_print_progress_bar(
+    capsys: pytest.CaptureFixture[str], cli_downloader: CLIDownloader
+) -> None:
+    progress_bar = create_progress_bar()
+    progress_bar[0] = "#"
+    # 1
+    cli_downloader._print_progress_bar(progress_bar)
+    captured = capsys.readouterr()
+    assert captured.out == f"\r[#{' ' * 19}]"
+    assert captured.err == ""
+    # 2
+    cli_downloader._print_progress_bar(progress_bar, last=True)
+    captured = capsys.readouterr()
+    assert captured.out == f"\r[#{' ' * 19}]\n"
     assert captured.err == ""
