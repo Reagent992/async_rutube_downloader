@@ -8,7 +8,7 @@ from async_rutube_downloader.utils.exceptions import (
     MasterPlaylistInitializationError,
 )
 from async_rutube_downloader.utils.type_hints import (
-    QualityPlaylists,
+    QualitiesWithPlaylist,
 )
 
 
@@ -35,7 +35,7 @@ class MasterPlaylist:
         self._master_playlist_url = master_playlist_url
         self._session = session
         self._master_playlist: m3u8.M3U8 | None = None
-        self.qualities: QualityPlaylists | None = None
+        self.qualities: QualitiesWithPlaylist | None = None
 
     async def run(self) -> Self:
         """
@@ -54,12 +54,12 @@ class MasterPlaylist:
         async with self._session.get(self._master_playlist_url) as response:
             return m3u8.loads(await response.text(), self._master_playlist_url)
 
-    def __get_qualities(self) -> QualityPlaylists:
+    def __get_qualities(self) -> QualitiesWithPlaylist:
         if not self._master_playlist:
             raise MasterPlaylistInitializationError(
                 "Master playlist not loaded. Call run() method first."
             )
-        qualities: QualityPlaylists = {}
+        qualities: QualitiesWithPlaylist = {}
         for playlist in self._master_playlist.playlists:
             resolution = playlist.stream_info.resolution
             if resolution and resolution not in qualities:
