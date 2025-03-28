@@ -74,6 +74,10 @@ REPORT_MULTIPLE_URLS: Final[str] = _(
 )
 DOWNLOAD_DIR: Final[str] = _("Download directory: {}")
 DOWNLOAD_CANCELED: Final[str] = _("Download cancelled")
+AVAILABLE_QUALITIES: Final[str] = _("Available qualities:")
+SELECT_QUALITY: Final[str] = _(
+    "Select quality. (Enter the corresponding number)"
+)
 ##################################################################### TEST_INFO
 # Links to download. Used for testing purposes.
 # 1 minute long

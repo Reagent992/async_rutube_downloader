@@ -10,6 +10,7 @@ from aiohttp import ClientSession
 from async_rutube_downloader.downloader import Downloader
 from async_rutube_downloader.settings import (
     API_RESPONSE_ERROR_MSG,
+    AVAILABLE_QUALITIES,
     CLI_DESCRIPTION,
     CLI_EPILOG,
     CLI_NAME,
@@ -18,6 +19,7 @@ from async_rutube_downloader.settings import (
     INVALID_FILE_ERROR_MSG,
     INVALID_URL,
     REPORT_MULTIPLE_URLS,
+    SELECT_QUALITY,
     _,
 )
 from async_rutube_downloader.ui import SEGMENT_DOWNLOAD_ERROR_MSG
@@ -103,15 +105,15 @@ class CLIDownloader:
 
     def ask_for_quality(self, qualities: Qualities) -> tuple[int, int]:
         available_qualities = {}
-        print(_("Available qualities:"))
-        for index, quality in enumerate(qualities.keys()):
+        print(AVAILABLE_QUALITIES)
+        for index, quality in enumerate(qualities):
             print(
                 f"{index + INDEX_OFFSET}. {'x'.join(str(i) for i in quality)}"
             )
             available_qualities[index + INDEX_OFFSET] = quality
         user_input = None
         while cli_quality_validator(user_input, available_qualities) is False:
-            print(_("Select quality. (Enter the corresponding number)"))
+            print(SELECT_QUALITY)
             user_input = input()
         return available_qualities[int(user_input)]  # type: ignore
 
@@ -161,6 +163,7 @@ class CLIDownloader:
         await asyncio.gather(*self.__tasks)
 
     def interrupt_download(self) -> None:
+        # FIXME: add interrupt while selecting qualities.
         if self.downloader:
             self.downloader.interrupt_download()
             self.__download_cancelled = True
