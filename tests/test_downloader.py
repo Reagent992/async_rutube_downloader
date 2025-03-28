@@ -21,7 +21,7 @@ from async_rutube_downloader.utils.exceptions import (
 )
 from async_rutube_downloader.utils.type_hints import APIResponseDict, Qualities
 from tests.conftest import RUTUBE_LINK
-from tests.test_utils import validate_qualities
+from tests.test_utils import is_valid_qualities
 
 # There is few protected methods calls, through mangled names,
 # it's not a good practice.
@@ -89,7 +89,7 @@ async def test_validate_selected_quality(
 @pytest.mark.asyncio
 async def test_fetch_video_info(downloader: Downloader) -> None:
     result = await downloader.fetch_video_info()
-    assert validate_qualities(result)
+    assert is_valid_qualities(result)
 
 
 @pytest.mark.parametrize(

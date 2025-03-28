@@ -8,7 +8,7 @@ from async_rutube_downloader.utils.exceptions import (
     MasterPlaylistInitializationError,
 )
 from async_rutube_downloader.utils.type_hints import APIResponseDict
-from tests.test_utils import validate_qualities
+from tests.test_utils import is_valid_qualities_with_playlist
 
 
 @pytest.mark.asyncio
@@ -24,8 +24,10 @@ async def test_successful_master_playlist_creation(
 
     with pytest.raises(MasterPlaylistInitializationError):
         master_playlist._MasterPlaylist__get_qualities()  # type: ignore
+
     assert await master_playlist.run() == master_playlist
     assert isinstance(master_playlist._master_playlist, M3U8)
     get_response_mock.text.assert_awaited_once()
     mocked_session.get.assert_called_once_with(master_playlist_url)
-    assert validate_qualities(master_playlist.qualities)
+    assert master_playlist.qualities
+    assert is_valid_qualities_with_playlist(master_playlist.qualities)
