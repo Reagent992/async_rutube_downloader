@@ -254,9 +254,7 @@ class DownloaderUI(ctk.CTk):
         self._download_available_qualities = download_future.result()
 
     def __fill_qualities(self) -> None:
-        fields = [
-            f"{x}x{y}" for x, y in self._download_available_qualities.keys()
-        ]
+        fields = [f"{x}x{y}" for x, y in self._download_available_qualities]
         self._dropdown.configure(values=fields, state=tkinter.NORMAL)
         self._dropdown.set(fields[-1])
 

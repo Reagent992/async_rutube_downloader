@@ -8,7 +8,7 @@ import m3u8
 from aiohttp import ClientSession
 from slugify import slugify
 
-from async_rutube_downloader.playlist import MasterPlaylist, Qualities
+from async_rutube_downloader.playlist import MasterPlaylist
 from async_rutube_downloader.settings import (
     CHUNK_SIZE,
     RUTUBE_API_LINK,
@@ -32,7 +32,7 @@ from async_rutube_downloader.utils.miscellaneous import (
     get_or_create_loop,
     resolve_file_name,
 )
-from async_rutube_downloader.utils.type_hints import APIResponseDict
+from async_rutube_downloader.utils.type_hints import APIResponseDict, Qualities
 
 logger = get_logger(__name__)
 
@@ -100,8 +100,7 @@ class Downloader:
             self.__master_playlist_url, self._session
         ).run()
         if self._master_playlist.qualities is not None:
-            # TODO: return probably should be tuple of tuple[int, int]
-            return self._master_playlist.qualities
+            return tuple(self._master_playlist.qualities.keys())
         raise APIResponseError
 
     async def select_quality(self, selected_quality: tuple[int, int]) -> None:
