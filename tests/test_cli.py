@@ -16,7 +16,13 @@ from async_rutube_downloader.run_cli import (
     parse_args,
 )
 from async_rutube_downloader.run_cli import main as cli_main
-from async_rutube_downloader.settings import DOWNLOAD_DIR
+from async_rutube_downloader.settings import (
+    AVAILABLE_QUALITIES,
+    DOWNLOAD_DIR,
+    SELECT_QUALITY,
+    FULL_HD_1080p,
+    HD_720p,
+)
 from tests.conftest import RUTUBE_ID
 
 
@@ -176,4 +182,22 @@ def test_print_progress_bar(
     cli_downloader._print_progress_bar(progress_bar, last=True)
     captured = capsys.readouterr()
     assert captured.out == f"\r[#{' ' * 19}]\n"
+    assert captured.err == ""
+
+
+def test_ask_for_quality(
+    capsys: pytest.CaptureFixture[str],
+    cli_downloader: CLIDownloader,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("builtins.input", lambda: "1")
+    qualities = FULL_HD_1080p, HD_720p
+    cli_downloader.ask_for_quality(qualities)
+    captured = capsys.readouterr()
+    expected_output = f"""{AVAILABLE_QUALITIES}
+1. {"x".join(str(i) for i in FULL_HD_1080p)}
+2. {"x".join(str(i) for i in HD_720p)}
+{SELECT_QUALITY}
+"""
+    assert captured.out == expected_output
     assert captured.err == ""
