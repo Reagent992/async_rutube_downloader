@@ -201,3 +201,24 @@ def test_ask_for_quality(
 """
     assert captured.out == expected_output
     assert captured.err == ""
+
+
+@pytest.mark.parametrize(
+    "completed_chunks, total_chunks, is_end",
+    ((1, 16, False), (16, 16, True)),
+)
+@pytest.mark.asyncio
+async def test_cli_progress_callback(
+    cli_downloader: CLIDownloader,
+    mocker: MockerFixture,
+    completed_chunks,
+    total_chunks,
+    is_end,
+) -> None:
+    print_func_mock = mocker.patch(
+        "async_rutube_downloader.run_cli.CLIDownloader._print_progress_bar"
+    )
+    await cli_downloader._cli_progress_callback(completed_chunks, total_chunks)
+    print_func_mock.assert_called_once_with(
+        cli_downloader.progress_bar, is_end
+    )
