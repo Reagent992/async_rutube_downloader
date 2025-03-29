@@ -37,19 +37,41 @@ rtube-cli https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
 pip install async_rutube_downloader
 ```
 2. Use example
+`qualities` is a tuple, like: `((1280, 720), (1920,1080))`
+
+- async
+
 ```python
 import asyncio
 from async_rutube_downloader.downloader import Downloader
+
 
 async def download():
     downloader = Downloader(
         "https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/"
     )
     qualities = await downloader.fetch_video_info()
-    await downloader.select_quality(max(qualities.keys()))
+    await downloader.select_quality(max(qualities))
     await downloader.download_video()
 
 asyncio.run(download())
+```
+
+- sync
+
+```python
+import asyncio
+from async_rutube_downloader.downloader import Downloader
+
+
+loop = asyncio.new_event_loop()
+downloader = Downloader(
+    "https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/", loop
+)
+qualities = loop.run_until_complete(downloader.fetch_video_info())
+loop.run_until_complete(downloader.select_quality(max(qualities)))
+loop.run_until_complete(downloader.download_video())
+loop.close()
 ```
 
 ### [Source code](./dev.md)
