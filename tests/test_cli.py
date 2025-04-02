@@ -1,8 +1,9 @@
+import sys
 from argparse import Namespace, RawDescriptionHelpFormatter
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_mock import MockerFixture
 
 from async_rutube_downloader.run_cli import (
     CLI_DESCRIPTION,
@@ -104,30 +105,34 @@ def test_invalid_directory_shows_error_message(
     assert invalid_path in captured.err
 
 
+@patch(
+    "async_rutube_downloader.run_cli.CLIDownloader.download_single_video",
+    spec=True,
+)
 def test_cli_download_single_url(
-    cli_single_url_fixture: None, mocker: MockerFixture
+    mocked_method: AsyncMock,
+    cli_single_url_fixture: None,
 ) -> None:
-    mock_method = mocker.patch(
-        "async_rutube_downloader.run_cli.CLIDownloader.download_single_video"
-    )
     cli_main()
-    mock_method.assert_called_once()
+    mocked_method.assert_called_once()
 
 
+@patch(
+    "async_rutube_downloader.run_cli.CLIDownloader.download_single_video",
+    spec=True,
+)
 def test_cli_download_from_file(
+    mocked_method: AsyncMock,
     cli_file_fixture: None,
-    mocker: MockerFixture,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    mock_method = mocker.patch(
-        "async_rutube_downloader.run_cli.CLIDownloader.download_single_video"
-    )
+    urls_in_fixture = 3
     cli_main()
-    assert mock_method.call_count == 3
+    assert mocked_method.call_count == urls_in_fixture
     captured = capsys.readouterr()
     assert (
         captured.out == f"{DOWNLOAD_DIR.format(Path.cwd())}\n"
-        f"{REPORT_MULTIPLE_URLS.format(3, 0, 0, 0)}\n"
+        f"{REPORT_MULTIPLE_URLS.format(urls_in_fixture, 0, 0, 0)}\n"
     )
     assert captured.err == ""
 
@@ -147,12 +152,14 @@ def test_cli_entry_points(entry_point: str) -> None:
     result.check_returncode()
 
 
+@patch.object(
+    sys,
+    "argv",
+    ["async_rutube_downloader", "-h"],
+)
 def test_cli_help_text(
-    capsys: pytest.CaptureFixture[str], mocker: MockerFixture
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
-    test_args = ["async_rutube_downloader", "-h"]
-    mocker.patch("sys.argv", test_args)
-
     with pytest.raises(SystemExit):
         cli_main()
 
@@ -203,22 +210,23 @@ def test_ask_for_quality(
     assert captured.err == ""
 
 
+@patch(
+    "async_rutube_downloader.run_cli.CLIDownloader._print_progress_bar",
+    spec=True,
+)
 @pytest.mark.parametrize(
     "completed_chunks, total_chunks, is_end",
     ((1, 16, False), (16, 16, True)),
 )
 @pytest.mark.asyncio
 async def test_cli_progress_callback(
+    mocked_print_func: MagicMock,
     cli_downloader: CLIDownloader,
-    mocker: MockerFixture,
-    completed_chunks,
-    total_chunks,
-    is_end,
+    completed_chunks: int,
+    total_chunks: int,
+    is_end: bool,
 ) -> None:
-    print_func_mock = mocker.patch(
-        "async_rutube_downloader.run_cli.CLIDownloader._print_progress_bar"
-    )
     await cli_downloader._cli_progress_callback(completed_chunks, total_chunks)
-    print_func_mock.assert_called_once_with(
+    mocked_print_func.assert_called_once_with(
         cli_downloader.progress_bar, is_end
     )
