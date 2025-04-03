@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Final
+from typing import Callable, Final
 from unittest.mock import AsyncMock, create_autospec
 
 import pytest
@@ -12,7 +12,15 @@ from async_rutube_downloader.run_cli import (
     create_parser,
     parse_args,
 )
+from async_rutube_downloader.utils.decorators import retry
 from async_rutube_downloader.utils.type_hints import APIResponseDict
+
+
+class RetryTestError(Exception): ...
+
+
+class RetryTestRaisingError(Exception): ...
+
 
 RUTUBE_LINK: Final[str] = (
     "https://rutube.ru/video/2ce725b3dc1a243f8456458975ecd872/"
@@ -24,6 +32,12 @@ VIDEO_FILE_PLAYLIST_FIXTURE = Path(
     "tests/fixtures/video_file_playlist_fixture.mp4.m3u8"
 )
 CLI_VIDEO_LIST_ENTER = Path("tests/fixtures/videos_list_enter.txt")
+# retry decorator
+EXCEPTION_TEXT = "exception_text"
+EXCEPTION_TO_RAISE = RetryTestError
+RETRY_ON_EXCEPTION = RetryTestRaisingError
+MAX_RETRIES = 4
+RETRY_DELAY = 0.01
 
 
 @pytest.fixture(scope="function")
@@ -105,3 +119,15 @@ def cli_downloader(
     parser = create_parser()
     cli_args = parse_args(parser)
     return CLIDownloader(cli_args, mocked_session)
+
+
+@pytest.fixture(scope="function")
+def retry_decorator_fixture() -> Callable:
+    filled_retry_decorator = retry(
+        EXCEPTION_TEXT,
+        EXCEPTION_TO_RAISE,
+        MAX_RETRIES,
+        RETRY_DELAY,
+        RETRY_ON_EXCEPTION,
+    )
+    return filled_retry_decorator

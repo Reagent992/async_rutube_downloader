@@ -42,8 +42,8 @@ def test_create_parser() -> None:
 
 
 @pytest.mark.parametrize(
-    "url,optional_arg",
-    [
+    "url, optional_arg",
+    (
         (f"https://rutube.ru/video/{RUTUBE_ID}/", []),
         (RUTUBE_ID, []),
         (RUTUBE_ID, ["-q"]),
@@ -57,7 +57,7 @@ def test_create_parser() -> None:
             RUTUBE_ID,
             ["-f", "./path/to/file", "-d", ";", "-q", "-o", str(Path.cwd())],
         ),
-    ],
+    ),
 )
 def test_parse_args(
     url: str, optional_arg: list[str], monkeypatch: pytest.MonkeyPatch
@@ -107,7 +107,7 @@ def test_invalid_directory_shows_error_message(
 
 @patch(
     "async_rutube_downloader.run_cli.CLIDownloader.download_single_video",
-    spec=True,
+    autospec=True,
 )
 def test_cli_download_single_url(
     mocked_method: AsyncMock,
@@ -119,7 +119,7 @@ def test_cli_download_single_url(
 
 @patch(
     "async_rutube_downloader.run_cli.CLIDownloader.download_single_video",
-    spec=True,
+    autospec=True,
 )
 def test_cli_download_from_file(
     mocked_method: AsyncMock,
@@ -212,7 +212,7 @@ def test_ask_for_quality(
 
 @patch(
     "async_rutube_downloader.run_cli.CLIDownloader._print_progress_bar",
-    spec=True,
+    autospec=True,
 )
 @pytest.mark.parametrize(
     "completed_chunks, total_chunks, is_end",
@@ -228,5 +228,5 @@ async def test_cli_progress_callback(
 ) -> None:
     await cli_downloader._cli_progress_callback(completed_chunks, total_chunks)
     mocked_print_func.assert_called_once_with(
-        cli_downloader.progress_bar, is_end
+        cli_downloader, cli_downloader.progress_bar, is_end
     )
