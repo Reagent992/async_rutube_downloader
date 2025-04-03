@@ -36,6 +36,8 @@ def retry(
             The maximum number of attempts. Defaults to 3.
         retry_delay (float, optional):
             The delay between attempts in seconds. Defaults to 0.5.
+            The actual delay increases with each attempt as
+            (retry_delay * iteration).
         retry_on_exception (type[Exception], optional):
             The exception class that will trigger a retry.
             Defaults to ClientError.
@@ -44,16 +46,16 @@ def retry(
     def decorator(func: AsyncFunc) -> AsyncFunc:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
-            for _ in range(max_retries):
+            for iteration in range(1, max_retries + 1):
                 try:
                     return await func(*args, **kwargs)
                 except retry_on_exception as e:
                     logger.info(
                         "Connection error: %s - Retrying in %s seconds...",
                         e,
-                        retry_delay,
+                        retry_delay * iteration,
                     )
-                    await asyncio.sleep(retry_delay)
+                    await asyncio.sleep(retry_delay * iteration)
             logger.info("Failed to connect after %s attempts.", max_retries)
             raise exception_to_raise(exception_text)
 
