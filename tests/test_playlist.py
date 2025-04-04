@@ -8,7 +8,7 @@ from async_rutube_downloader.utils.exceptions import (
     MasterPlaylistInitializationError,
 )
 from async_rutube_downloader.utils.type_hints import APIResponseDict
-from tests.test_utils import is_valid_qualities_with_playlist
+from tests.utils.validators import is_valid_qualities_with_playlist
 
 
 @pytest.mark.asyncio

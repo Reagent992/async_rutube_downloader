@@ -21,7 +21,7 @@ from async_rutube_downloader.utils.exceptions import (
 )
 from async_rutube_downloader.utils.type_hints import APIResponseDict, Qualities
 from tests.conftest import RUTUBE_LINK
-from tests.test_utils import is_valid_qualities
+from tests.utils.validators import is_valid_qualities
 
 # There is few protected methods calls, through mangled names,
 # it's not a good practice.
