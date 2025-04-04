@@ -41,3 +41,13 @@ def cli_validate_path(output: str) -> Path:
             "Directory '{}' does not exist.".format(output)
         )
     return path
+
+
+def is_quality_valid(selected_quality: tuple[int, int]) -> bool:
+    if (
+        isinstance(selected_quality, tuple)
+        and len(selected_quality) == 2
+        and all(isinstance(i, int) and i > 0 for i in selected_quality)
+    ):
+        return True
+    return False

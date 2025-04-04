@@ -33,6 +33,7 @@ from async_rutube_downloader.utils.miscellaneous import (
     resolve_file_name,
 )
 from async_rutube_downloader.utils.type_hints import APIResponseDict, Qualities
+from async_rutube_downloader.utils.validators import is_quality_valid
 
 logger = get_logger(__name__)
 
@@ -111,7 +112,8 @@ class Downloader:
             selected_quality: A tuple of two integers representing the
                 width and height of the video quality to download.
         """
-        self.__validate_selected_quality(selected_quality)
+        if not is_quality_valid(selected_quality):
+            raise QualityError("Quality must be a tuple of two integers.")
         if (
             self._master_playlist is None
             or self._master_playlist.qualities is None
@@ -235,16 +237,6 @@ class Downloader:
             or self.__completed_requests == self.__total_chunks
         ):
             self._callback(self.__completed_requests, self.__total_chunks)
-
-    @staticmethod
-    def __validate_selected_quality(selected_quality: tuple[int, int]) -> bool:
-        if not (
-            isinstance(selected_quality, tuple)
-            and len(selected_quality) == 2
-            and all(isinstance(i, int) for i in selected_quality)
-        ):
-            raise QualityError("Quality must be a tuple of two integers.")
-        return True
 
     @retry("Failed to fetch API response", APIResponseError)
     async def __get_selected_quality(self, quality_url: str) -> m3u8.M3U8:
