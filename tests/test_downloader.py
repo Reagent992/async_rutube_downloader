@@ -253,3 +253,9 @@ def test_downloader_created_with_id(mocked_session: AsyncMock) -> None:
     assert Downloader(
         TEST_VIDEO_ID, session=mocked_session
     ).url == URL_FOR_ID_TEMPLATE.format(TEST_VIDEO_ID)
+
+
+def test_interrupt_download(downloader: Downloader) -> None:
+    assert downloader.is_interrupted() is False
+    downloader.interrupt_download()
+    assert downloader.is_interrupted() is True
