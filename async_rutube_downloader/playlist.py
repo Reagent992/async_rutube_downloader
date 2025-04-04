@@ -5,11 +5,13 @@ from aiohttp import ClientSession
 
 from async_rutube_downloader.utils.decorators import retry
 from async_rutube_downloader.utils.exceptions import (
+    APIResponseError,
     MasterPlaylistInitializationError,
 )
-from async_rutube_downloader.utils.type_hints import (
-    QualitiesWithPlaylist,
-)
+from async_rutube_downloader.utils.logger import get_logger
+from async_rutube_downloader.utils.type_hints import QualitiesWithPlaylist
+
+logger = get_logger(__name__)
 
 
 class MasterPlaylist:
@@ -52,7 +54,18 @@ class MasterPlaylist:
     )
     async def __get_master_playlist(self) -> m3u8.M3U8:
         async with self._session.get(self._master_playlist_url) as response:
-            return m3u8.loads(await response.text(), self._master_playlist_url)
+            try:
+                return m3u8.loads(
+                    await response.text(), self._master_playlist_url
+                )
+            except Exception as e:
+                logger.info(
+                    "An error occurred while parsing the Master Playlist",
+                    exc_info=True,
+                )
+                raise APIResponseError(
+                    "An error occurred while parsing the Master Playlist", e
+                )
 
     def __get_qualities(self) -> QualitiesWithPlaylist:
         if not self._master_playlist:
@@ -65,6 +78,6 @@ class MasterPlaylist:
             if resolution and resolution not in qualities:
                 qualities[resolution] = playlist
             # TODO: There are 2 CDNs in the master playlist,
-            #  we can potentially use the second one for retry.
+            # we can potentially use the second one for retry.
             # but now just skip it.
         return qualities
