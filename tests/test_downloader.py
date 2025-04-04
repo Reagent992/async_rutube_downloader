@@ -15,6 +15,7 @@ from async_rutube_downloader.settings import (
     FULL_HD_1080p,
 )
 from async_rutube_downloader.utils.exceptions import (
+    APIResponseError,
     InvalidURLError,
     MasterPlaylistInitializationError,
     QualityError,
@@ -90,6 +91,17 @@ async def test_validate_selected_quality(
 async def test_fetch_video_info(downloader: Downloader) -> None:
     result = await downloader.fetch_video_info()
     assert is_valid_qualities(result)
+
+
+@pytest.mark.asyncio
+async def test_fetch_video_info_raise_error(
+    downloader: Downloader,
+    get_response_mock: AsyncMock,
+) -> None:
+    # Turn off an API response for MasterPlatlist
+    get_response_mock.text.side_effect = ""
+    with pytest.raises(APIResponseError):
+        await downloader.fetch_video_info()
 
 
 @pytest.mark.parametrize(
