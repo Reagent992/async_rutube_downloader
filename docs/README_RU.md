@@ -28,7 +28,41 @@ pip install async_rutube_downloader
 ```
 rtube-cli https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
 ```
-[![cli-ru.png](cli-ru.png)](https://pypi.org/project/async_rutube_downloader/)
+
+---
+
+- `rtube-cli --help` вывод
+
+```
+❯ rtube-cli
+usage: rtube-cli [-h] [-o] [-q] [-v] [-f] [-d] [url]
+
+Эта утилита командной строки позволяет загружать видео с Rutube.
+ - Вы можете загрузить одно видео или несколько видео, указав файл с URL.
+ - По умолчанию видео из файла будут загружаться в наилучшем доступном качестве.
+
+positional arguments:
+  url                URL или ID Rutube видео
+
+options:
+  -h, --help         show this help message and exit
+  -o , --output      Каталог вывода (по умолчанию: текущий каталог)
+  -q, --quality      Выберите качество видео в интерактивном режиме
+  -v, --version      show program's version number and exit
+
+Загрузить несколько видео:
+  -f , --file        Путь до файла с ссылками
+  -d , --delimiter   Разделитель между ссылками в файле (по умолчанию: \n)
+
+Usage examples:
+ - Download single video:
+      [rtube-cli] 365ae8f40a2ffd2a5901ace4db799de7
+      [rtube-cli] https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
+      [rtube-cli] https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/ -q
+ - Download multiple videos:
+      [rtube-cli] -f ~/path/to/file1.txt
+      [rtube-cli] -f ~/path/to/file2.txt -d ,
+```
 
 ### Использование в коде
 

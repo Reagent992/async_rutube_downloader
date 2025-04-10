@@ -28,7 +28,41 @@ pip install async_rutube_downloader
 ```
 rtube-cli https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
 ```
-![cli.png](cli-en.png)
+
+---
+
+- `rtube-cli --help` output
+
+```
+❯ rtube-cli
+usage: rtube-cli [-h] [-o] [-q] [-v] [-f] [-d] [url]
+
+This CLI utility allows you to download videos from Rutube.
+ - You can download a single video or multiple videos by providing a file with URLs.
+ - By default, videos from a file will be downloaded in the best available quality.
+
+positional arguments:
+  url                URL or ID of the Rutube video
+
+options:
+  -h, --help         show this help message and exit
+  -o , --output      Output directory (default: current working directory)
+  -q, --quality      Select video quality interactively
+  -v, --version      show program's version number and exit
+
+Multiple videos download:
+  -f , --file        Path to the file with URLs
+  -d , --delimiter   Delimiter between URLs in the file(default: \n)
+
+Usage examples:
+ - Download single video:
+      [rtube-cli] 365ae8f40a2ffd2a5901ace4db799de7
+      [rtube-cli] https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
+      [rtube-cli] https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/ -q
+ - Download multiple videos:
+      [rtube-cli] -f ~/path/to/file1.txt
+      [rtube-cli] -f ~/path/to/file2.txt -d ,
+```
 
 ### Use in code
 
