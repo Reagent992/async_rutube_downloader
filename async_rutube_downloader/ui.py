@@ -1,7 +1,7 @@
 import asyncio
 import tkinter
 from asyncio import AbstractEventLoop, new_event_loop
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from enum import Enum, auto
 from pathlib import Path
 from queue import Queue
@@ -225,18 +225,10 @@ class DownloaderUI(ctk.CTk):
             self.__error_counter = "1"
 
     def _fetch_video_info(self) -> None:
-        self.__fetch_video_info()
-        self.__fill_qualities()
-        self.__fill_title()
-
-    def __fetch_video_info(self) -> None:
         """
         1. Creates a Downloader object in the main thread.
         2. Executes its `fetch_video_info` method in a separate thread,
         where an event loop is running.
-
-        Note:
-            - blocks the main thread until gets video info.
         """
         if not self._upload_directory:
             raise UploadDirectoryNotSelectedError
@@ -251,7 +243,15 @@ class DownloaderUI(ctk.CTk):
         download_future = asyncio.run_coroutine_threadsafe(
             self._download.fetch_video_info(), self._loop
         )
+        download_future.add_done_callback(self._on_video_info_fetched)
+
+    def _on_video_info_fetched(self, download_future: Future) -> None:
         self._download_available_qualities = download_future.result()
+        self._update_ui_with_video_info()
+
+    def _update_ui_with_video_info(self):
+        self.__fill_qualities()
+        self.__fill_title()
 
     def __fill_qualities(self) -> None:
         fields = [f"{x}x{y}" for x, y in self._download_available_qualities]
