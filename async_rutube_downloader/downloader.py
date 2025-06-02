@@ -23,6 +23,7 @@ from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
     InvalidPlaylistError,
     InvalidURLError,
+    M3U8URLNotFoundError,
     MasterPlaylistInitializationError,
     QualityError,
     SegmentDownloadError,
@@ -113,19 +114,17 @@ class Downloader:
                 width and height of the video quality to download.
         """
         if not is_quality_valid(selected_quality):
-            raise QualityError("Quality must be a tuple of two integers.")
+            raise QualityError
         if (
             self._master_playlist is None
             or self._master_playlist.qualities is None
         ):
-            raise MasterPlaylistInitializationError(
-                "Master playlist is not initialized, call run() method first"
-            )
+            raise MasterPlaylistInitializationError
         selected_quality_obj = self._master_playlist.qualities[
             selected_quality
         ]
         if not selected_quality_obj.uri:
-            raise InvalidPlaylistError("Invalid playlist selected")
+            raise InvalidPlaylistError
         self._selected_quality = await self.__get_selected_quality(
             selected_quality_obj.uri
         )
@@ -217,7 +216,7 @@ class Downloader:
     def __extract_id_from_url(self) -> str:
         if self.url and (result := re.search(VIDEO_ID_REGEX, self.url)):
             return result.group()
-        raise InvalidURLError(f"Invalid Rutube URL: {self.url}")
+        raise InvalidURLError(self.url)
 
     def __extract_master_playlist_url(
         self, api_response: APIResponseDict
@@ -226,7 +225,7 @@ class Downloader:
         try:
             return api_response["video_balancer"]["m3u8"]
         except KeyError:
-            raise KeyError("M3U8 playlist URL not found in API response.")
+            raise M3U8URLNotFoundError
 
     async def __call_callback(self) -> None:
         """Once we've completed 1% of requests, call

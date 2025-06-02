@@ -16,6 +16,7 @@ from async_rutube_downloader.utils.create_session import create_aiohttp_session
 from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
     DownloaderIsNotInitializerError,
+    FolderDoesNotExistError,
     InvalidURLError,
     MasterPlaylistInitializationError,
     QualityError,
@@ -315,9 +316,7 @@ class DownloaderUI(ctk.CTk):
         Set the quality of the video to download.
         """
         if self._download is None:
-            raise DownloaderIsNotInitializerError(
-                "You must initialize Downloader object first."
-            )
+            raise DownloaderIsNotInitializerError
         selected_quality = self.__get_selected_quality()
         quality_future = asyncio.run_coroutine_threadsafe(
             self._download.select_quality(selected_quality), self._loop
@@ -328,7 +327,7 @@ class DownloaderUI(ctk.CTk):
         quality = tuple(map(int, self._dropdown.get().split("x")))
         if len(quality) == 2:
             return quality
-        raise QualityError("Quality must be a tuple of two integers")
+        raise QualityError
 
     def select_folder(self) -> None:
         directory = filedialog.askdirectory(title="Select Download Folder")
@@ -336,7 +335,7 @@ class DownloaderUI(ctk.CTk):
             self._chosen_directory.configure(text=directory)
             self._upload_directory = Path(directory)
             if not self._upload_directory.is_dir():
-                raise ValueError("Selected folder does not exist")
+                raise FolderDoesNotExistError
             self._video_info_button.configure(state="normal")
 
 

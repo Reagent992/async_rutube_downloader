@@ -63,15 +63,11 @@ class MasterPlaylist:
                     "An error occurred while parsing the Master Playlist",
                     exc_info=True,
                 )
-                raise APIResponseError(
-                    "An error occurred while parsing the Master Playlist", e
-                )
+                raise APIResponseError(str(e))
 
     def __get_qualities(self) -> QualitiesWithPlaylist:
         if not self._master_playlist:
-            raise MasterPlaylistInitializationError(
-                "Master playlist not loaded. Call run() method first."
-            )
+            raise MasterPlaylistInitializationError
         qualities: QualitiesWithPlaylist = {}
         for playlist in self._master_playlist.playlists:
             resolution = playlist.stream_info.resolution

@@ -1,6 +1,8 @@
 from argparse import ArgumentTypeError
 from pathlib import Path
 
+from async_rutube_downloader.utils.exceptions import OutputDirectoryError
+
 
 def cli_quality_validator(
     user_input: str | None, qualities: dict[int, tuple[int, int]]
@@ -37,9 +39,7 @@ def cli_validate_urls_file(urls: list[str]) -> bool:
 def cli_validate_path(output: str) -> Path:
     path = Path(output)
     if not path.exists():
-        raise ArgumentTypeError(
-            "Directory '{}' does not exist.".format(output)
-        )
+        raise OutputDirectoryError(output)
     return path
 
 
