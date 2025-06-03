@@ -21,4 +21,4 @@ def get_resource_path(relative_path: str) -> str:
     development and PyInstaller bundle"""
     # PyInstaller creates a temp folder and stores path in _MEIPASS
     base_path = getattr(sys, "_MEIPASS", Path.cwd())
-    return str(base_path / relative_path)
+    return str(Path(base_path) / relative_path)
