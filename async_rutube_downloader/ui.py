@@ -23,6 +23,7 @@ from async_rutube_downloader.utils.exceptions import (
     SegmentDownloadError,
     UploadDirectoryNotSelectedError,
 )
+from async_rutube_downloader.utils.interfaces import DownloaderABC
 
 INVALID_URL_MSG: Final[str] = (
     "The provided URL is invalid. Please check and try again."
@@ -53,17 +54,18 @@ class DownloaderUI(ctk.CTk):
 
     def __init__(
         self,
+        downloader_class: type[DownloaderABC],
         loop: AbstractEventLoop = new_event_loop(),
         *args,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
-
+        self._downloader_type = downloader_class
         self._loop = loop
         self._session = create_aiohttp_session(self._loop)
         self._refresh_ms = 25
         self._queue: Queue = Queue()
-        self._download: Downloader | None = None
+        self._download: DownloaderABC | None = None
         self._upload_directory: Path | None = None
         self.__error_counter: str = ""
         self.__thread_pool = ThreadPoolExecutor()

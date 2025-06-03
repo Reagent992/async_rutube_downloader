@@ -5,6 +5,7 @@ from pathlib import Path
 
 import aiofiles
 import m3u8
+from aiofiles.threadpool.binary import AsyncBufferedIOBase
 from aiohttp import ClientSession
 from slugify import slugify
 
@@ -12,7 +13,6 @@ from async_rutube_downloader.playlist import MasterPlaylist
 from async_rutube_downloader.settings import (
     CHUNK_SIZE,
     RUTUBE_API_LINK,
-    TEST_VIDEO_URL,
     VIDEO_FORMAT,
     VIDEO_ID_REGEX,
 )
@@ -28,6 +28,7 @@ from async_rutube_downloader.utils.exceptions import (
     QualityError,
     SegmentDownloadError,
 )
+from async_rutube_downloader.utils.interfaces import DownloaderABC
 from async_rutube_downloader.utils.logger import get_logger
 from async_rutube_downloader.utils.miscellaneous import (
     get_or_create_loop,
@@ -39,7 +40,7 @@ from async_rutube_downloader.utils.validators import is_quality_valid
 logger = get_logger(__name__)
 
 
-class Downloader:
+class Downloader(DownloaderABC):
     """
     Downloads a video from Rutube using the URL
     and saves it to a file in a specified folder.
@@ -159,9 +160,9 @@ class Downloader:
             await self._download_video(file)
 
         if self._auto_close_session:
-            await self.close()
+            await self.close_session()
 
-    async def _download_video(self, file) -> None:
+    async def _download_video(self, file: AsyncBufferedIOBase) -> None:
         for i in range(0, len(self.segments), CHUNK_SIZE):
             if not self.__download_cancelled:
                 download_tasks = [
@@ -181,7 +182,7 @@ class Downloader:
     def is_interrupted(self) -> bool:
         return self.__download_cancelled
 
-    async def close(self) -> None:
+    async def close_session(self) -> None:
         if not self._session.closed:
             await self._session.close()
 
@@ -241,15 +242,3 @@ class Downloader:
     async def __get_selected_quality(self, quality_url: str) -> m3u8.M3U8:
         async with self._session.get(quality_url) as response:
             return m3u8.loads(await response.text(), quality_url)
-
-
-if __name__ == "__main__":
-
-    async def main(loop):
-        downloader = Downloader(TEST_VIDEO_URL, loop=loop)
-        await downloader.fetch_video_info()
-        # await downloader.select_quality((1920, 1080))
-        await downloader.download_video()
-
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(main(loop))
