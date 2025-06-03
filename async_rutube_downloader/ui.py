@@ -1,7 +1,7 @@
 import asyncio
 import tkinter
 from asyncio import AbstractEventLoop, new_event_loop
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import Future
 from enum import Enum, auto
 from pathlib import Path
 from queue import Queue
@@ -10,7 +10,6 @@ from typing import Final
 
 import customtkinter as ctk
 
-from async_rutube_downloader.downloader import Downloader
 from async_rutube_downloader.settings import DOWNLOAD_CANCELED, _
 from async_rutube_downloader.utils.create_session import create_aiohttp_session
 from async_rutube_downloader.utils.exceptions import (
@@ -18,6 +17,7 @@ from async_rutube_downloader.utils.exceptions import (
     DownloaderIsNotInitializerError,
     FolderDoesNotExistError,
     InvalidURLError,
+    M3U8URLNotFoundError,
     MasterPlaylistInitializationError,
     QualityError,
     SegmentDownloadError,
@@ -25,7 +25,7 @@ from async_rutube_downloader.utils.exceptions import (
 )
 from async_rutube_downloader.utils.interfaces import DownloaderABC
 
-INVALID_URL_MSG: Final[str] = (
+INVALID_URL_MSG: Final[str] = _(
     "The provided URL is invalid. Please check and try again."
 )
 API_RESPONSE_ERROR_MSG: Final[str] = _(
@@ -68,7 +68,6 @@ class DownloaderUI(ctk.CTk):
         self._download: DownloaderABC | None = None
         self._upload_directory: Path | None = None
         self.__error_counter: str = ""
-        self.__thread_pool = ThreadPoolExecutor()
 
         # Configure window
         self.title(_("Rutube Downloader"))
@@ -93,7 +92,7 @@ class DownloaderUI(ctk.CTk):
         self._url_entry = ctk.CTkEntry(
             self, width=300, placeholder_text=_("Enter RuTube URL or Video ID")
         )
-        self._url_entry.bind("<Return>", self._run_fetch_concurrently)
+        self._url_entry.bind("<Return>", self.fetch_video_info)
         self._url_entry.grid(column=0, row=1, padx=10, pady=10, sticky="ew")
 
         # Get video info
@@ -103,7 +102,7 @@ class DownloaderUI(ctk.CTk):
         self._video_info_button = ctk.CTkButton(
             self,
             text=_("Get Video Info"),
-            command=self._run_fetch_concurrently,
+            command=self.fetch_video_info,
             state=tkinter.DISABLED,
         )
         self._video_info_button.grid(column=1, row=1, padx=10, pady=10)
@@ -136,22 +135,11 @@ class DownloaderUI(ctk.CTk):
         # Customtkinter progress bar have 0-1 range, so we need to divide it
         self._progress_bar_divider = 100
 
-    def _run_fetch_concurrently(self, *args) -> None:
-        """
-        Run fetch_video_info in separate thread.
-
-        Args:
-            *args: Press **Enter** in the URL input area, creates an object,
-                this object goes here.
-        """
-        self.__thread_pool.submit(self.fetch_video_info)
-
     def _update_bar(self, progress_bar_value: int) -> None:
         """Update the progress bar.
         Call only from main thread."""
         if progress_bar_value == 100 and self._download:
-            self.__thread_pool.submit(
-                messagebox.showinfo,
+            messagebox.showinfo(
                 _("Download Complete"),
                 _("Download Complete"),
             )
@@ -194,32 +182,12 @@ class DownloaderUI(ctk.CTk):
         self._fetch_result_label.configure(text="")
         self.change_download_button_state(State.normal)
         if not self._url_entry.get():
-            self.__thread_pool.submit(
-                messagebox.showerror,
+            messagebox.showerror(
                 _("Error"),
                 _("Please enter a video URL before proceeding."),
             )
         elif self._upload_directory and self._url_entry.get():
-            try:
-                self.__thread_pool.submit(self._fetch_video_info)
-            except (InvalidURLError, KeyError):
-                self._fetch_result_label.configure(
-                    text=INVALID_URL_MSG + self.__error_counter,
-                    text_color=ERROR_COLOR,
-                )
-                self.__increase_error_counter()
-            except (APIResponseError, MasterPlaylistInitializationError):
-                self._fetch_result_label.configure(
-                    text=API_RESPONSE_ERROR_MSG + self.__error_counter,
-                    text_color=ERROR_COLOR,
-                )
-                self.__increase_error_counter()
-            except SegmentDownloadError:
-                self._fetch_result_label.configure(
-                    text=SEGMENT_DOWNLOAD_ERROR_MSG + self.__error_counter,
-                    text_color=ERROR_COLOR,
-                )
-                self.__increase_error_counter()
+            self._fetch_video_info()
 
     def __increase_error_counter(self) -> None:
         if self.__error_counter:
@@ -233,24 +201,44 @@ class DownloaderUI(ctk.CTk):
         2. Executes its `fetch_video_info` method in a separate thread,
         where an event loop is running.
         """
-        if not self._upload_directory:
-            raise UploadDirectoryNotSelectedError
-        self._download = Downloader(
-            self._url_entry.get(),
-            self._loop,
-            self._queue_update,
-            self._upload_directory,
-            self._session,
-            auto_close_session=False,
-        )
-        download_future = asyncio.run_coroutine_threadsafe(
-            self._download.fetch_video_info(), self._loop
-        )
-        download_future.add_done_callback(self._on_video_info_fetched)
+        try:
+            if not self._upload_directory:
+                raise UploadDirectoryNotSelectedError
+            self._download = self._downloader_type(
+                self._url_entry.get(),
+                self._loop,
+                self._queue_update,
+                self._upload_directory,
+                self._session,
+                auto_close_session=False,
+            )
+            download_future = asyncio.run_coroutine_threadsafe(
+                self._download.fetch_video_info(), self._loop
+            )
+            download_future.add_done_callback(self._on_video_info_fetched)
+        except (InvalidURLError, M3U8URLNotFoundError):
+            self._fetch_result_label.configure(
+                text=INVALID_URL_MSG + self.__error_counter,
+                text_color=ERROR_COLOR,
+            )
+            self.__increase_error_counter()
 
     def _on_video_info_fetched(self, download_future: Future) -> None:
-        self._download_available_qualities = download_future.result()
-        self._update_ui_with_video_info()
+        try:
+            self._download_available_qualities = download_future.result()
+            self._update_ui_with_video_info()
+        except (APIResponseError, MasterPlaylistInitializationError):
+            self._fetch_result_label.configure(
+                text=API_RESPONSE_ERROR_MSG + self.__error_counter,
+                text_color=ERROR_COLOR,
+            )
+            self.__increase_error_counter()
+        except SegmentDownloadError:
+            self._fetch_result_label.configure(
+                text=SEGMENT_DOWNLOAD_ERROR_MSG + self.__error_counter,
+                text_color=ERROR_COLOR,
+            )
+            self.__increase_error_counter()
 
     def _update_ui_with_video_info(self):
         self.__fill_qualities()
@@ -300,9 +288,7 @@ class DownloaderUI(ctk.CTk):
     def cancel_download(self) -> None:
         assert self._download
         self._download.interrupt_download()
-        self.__thread_pool.submit(
-            messagebox.showinfo, _("Info"), DOWNLOAD_CANCELED
-        )
+        messagebox.showinfo(_("Info"), DOWNLOAD_CANCELED)
         self.change_download_button_state(State.disable)
         self.clean_ui()
 
@@ -339,12 +325,3 @@ class DownloaderUI(ctk.CTk):
             if not self._upload_directory.is_dir():
                 raise FolderDoesNotExistError
             self._video_info_button.configure(state="normal")
-
-
-if __name__ == "__main__":
-    app = DownloaderUI()
-    app._video_title_dynamic.configure(
-        text="don't run this file directly, use run_ui.py",
-        text_color=ERROR_COLOR,
-    )
-    app.mainloop()
