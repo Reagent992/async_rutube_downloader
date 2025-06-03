@@ -48,16 +48,16 @@ CLI_EPILOG: Final[str] = _(
     """
 Usage examples:
  - Download single video:
-      [{}] 365ae8f40a2ffd2a5901ace4db799de7
-      [{}]\
+      [{cli_name}] 365ae8f40a2ffd2a5901ace4db799de7
+      [{cli_name}]\
  https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/
-      [{}]\
+      [{cli_name}]\
  https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/ -q
  - Download multiple videos:
-      [{}] -f ~/path/to/file1.txt
-      [{}] -f ~/path/to/file2.txt -d ,
-""".format(*[CLI_NAME] * 5)
-)
+      [{cli_name}] -f ~/path/to/file1.txt
+      [{cli_name}] -f ~/path/to/file2.txt -d ,
+"""
+).format(cli_name=CLI_NAME)
 API_RESPONSE_ERROR_MSG: Final[str] = _(
     "Resource not found (404) "
     "The URL may be incorrect, or the API might be unavailable."
@@ -68,6 +68,9 @@ INVALID_FILE_ERROR_MSG: Final[str] = _(
     "or does not meet validation requirements."
 )
 FILE_NOT_FOUND_ERROR_MSG: Final[str] = _("No such file or directory: {}")
+PATH_IS_A_DIRECTORY_ERROR_MSG: Final[str] = _(
+    "The given path is a directory: {}"
+)
 REPORT_MULTIPLE_URLS: Final[str] = _(
     "Report: Downloaded {} videos, "
     "Invalid urls {}, it takes {} minutes, {} seconds"

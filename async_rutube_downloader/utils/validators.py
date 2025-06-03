@@ -1,4 +1,3 @@
-from argparse import ArgumentTypeError
 from pathlib import Path
 
 from async_rutube_downloader.utils.exceptions import OutputDirectoryError

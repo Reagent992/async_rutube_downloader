@@ -1,6 +1,7 @@
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Final
+from typing import Final
 from unittest.mock import AsyncMock, create_autospec
 
 import pytest

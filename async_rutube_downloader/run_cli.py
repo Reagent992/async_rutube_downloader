@@ -18,6 +18,7 @@ from async_rutube_downloader.settings import (
     FILE_NOT_FOUND_ERROR_MSG,
     INVALID_FILE_ERROR_MSG,
     INVALID_URL,
+    PATH_IS_A_DIRECTORY_ERROR_MSG,
     REPORT_MULTIPLE_URLS,
     SELECT_QUALITY,
     _,
@@ -281,6 +282,13 @@ def _interrupt_and_report(cli_downloader: CLIDownloader) -> None:
     cli_downloader.interrupt_download()
 
 
+def handle_exception(msg: str, *args):
+    if args:
+        msg = msg.format(*args)
+    print(msg)
+    logger.info(msg, exc_info=True)
+
+
 def main(
     event_loop: asyncio.AbstractEventLoop | None = None,
     session: ClientSession | None = None,
@@ -311,32 +319,17 @@ def main(
         else:
             parser.print_help()
     except APIResponseError:
-        logger.info(API_RESPONSE_ERROR_MSG, exc_info=True)
-        print(API_RESPONSE_ERROR_MSG)
+        handle_exception(API_RESPONSE_ERROR_MSG)
     except InvalidURLError:
-        print(INVALID_URL)
-        logger.info(
-            INVALID_URL,
-            exc_info=True,
-        )
+        handle_exception(INVALID_URL)
     except SegmentDownloadError:
-        print(SEGMENT_DOWNLOAD_ERROR_MSG)
-        logger.info(
-            SEGMENT_DOWNLOAD_ERROR_MSG,
-            exc_info=True,
-        )
+        handle_exception(SEGMENT_DOWNLOAD_ERROR_MSG)
     except FileNotFoundError:
-        print(_(FILE_NOT_FOUND_ERROR_MSG.format(cli_args.output)))
-        logger.info(
-            FILE_NOT_FOUND_ERROR_MSG.format(cli_args.output),
-            exc_info=True,
-        )
+        handle_exception(FILE_NOT_FOUND_ERROR_MSG, cli_args.file)
+    except IsADirectoryError:
+        handle_exception(PATH_IS_A_DIRECTORY_ERROR_MSG, cli_args.file)
     except CLIFileError:
-        print(INVALID_FILE_ERROR_MSG)
-        logger.info(
-            INVALID_FILE_ERROR_MSG,
-            exc_info=True,
-        )
+        handle_exception(INVALID_FILE_ERROR_MSG)
     finally:
         event_loop.run_until_complete(session.close())
         event_loop.close()

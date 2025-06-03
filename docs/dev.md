@@ -1,4 +1,5 @@
 # How to install project locally
+
 1. [Install poetry](https://python-poetry.org/) or use another package manager that supports **pyproject.toml** (read about **uv** lower)
 2. Copy project `git clone https://github.com/Reagent992/async_rutube_downloader.git`
 3. `cd async_rutube_downloader`
@@ -6,17 +7,18 @@
 5. `poetry run python ./async_rutube_downloader/run_ui.py` or just `run_ui`
 
 ## How in add a dependency(poetry)
+
 When dev dependencies are in `[project.optional-dependencies]`, you can use a different project manager.
+
 1. `poetry add pre-commit --optional=dev`
 2. `poetry install --extras dev`
 
 # Dev notes
+
 - Looks like python installed by **UV** doesn't provide **TKinter** support. So i've switched to **poetry** and **pyenv**.
 - build executable command: `poetry run pyinstaller ./async_rutube_downloader/run_ui.py  --path ./async_rutube_downloader/ --clean --onefile --noconsole` or just `make build`
 - **GNU gettext** doesn't work with **f-strings**, use `_('Hey {},').format(username)` instead
 - `pre-commit install` to activate git hooks
-
-
 
 ## TODO
 
@@ -45,6 +47,8 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [x] Cancel download[UI]
 - [x] tests for cli client
 - [x] pypi library.
+- [x] fix: ui do not show errors
+- [x] add loose coupling through interface(Downloader)
 - [ ] add video thumbnail in UI
 - [ ] continue download
 - [ ] shorts/etc. support

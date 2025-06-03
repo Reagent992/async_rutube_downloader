@@ -17,6 +17,7 @@ from async_rutube_downloader.settings import (
 from async_rutube_downloader.utils.exceptions import (
     APIResponseError,
     InvalidURLError,
+    M3U8URLNotFoundError,
     MasterPlaylistInitializationError,
     QualityError,
 )
@@ -134,7 +135,8 @@ def test_extract_master_playlist_url(
     api_response_fixture: APIResponseDict, downloader: Downloader
 ) -> None:
     with pytest.raises(
-        KeyError, match="M3U8 playlist URL not found in API response."
+        M3U8URLNotFoundError,
+        match="M3U8 playlist URL not found in API response.",
     ):
         downloader._Downloader__extract_master_playlist_url(  # type: ignore
             {"invalid_key": "invalid_value"}

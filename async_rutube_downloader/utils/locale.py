@@ -1,6 +1,7 @@
 import locale
 import os
 import sys
+from pathlib import Path
 
 
 def get_locale() -> str:
@@ -15,16 +16,9 @@ def get_locale() -> str:
     return lang
 
 
-def get_resource_path(relative_path) -> str:
+def get_resource_path(relative_path: str) -> str:
     """Get absolute path to resource for both
     development and PyInstaller bundle"""
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        if hasattr(sys, "_MEIPASS"):
-            base_path = sys._MEIPASS  # type: ignore
-        else:
-            raise AttributeError
-    except (AttributeError, Exception):
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+    base_path = getattr(sys, "_MEIPASS", Path.cwd())
+    return str(base_path / relative_path)
