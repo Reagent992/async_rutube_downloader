@@ -7,12 +7,12 @@ from unittest.mock import AsyncMock, create_autospec
 import pytest
 from aiohttp import ClientSession
 
-from async_rutube_downloader.downloader import Downloader
 from async_rutube_downloader.run_cli import (
     CLIDownloader,
     create_parser,
     parse_args,
 )
+from async_rutube_downloader.rutube_downloader import RutubeDownloader
 from async_rutube_downloader.utils.decorators import retry
 from async_rutube_downloader.utils.type_hints import APIResponseDict
 
@@ -83,14 +83,16 @@ def downloader(
     api_response_fixture: APIResponseDict,
     master_playlist_fixture: str,
     video_file_playlist_fixture: str,
-) -> Downloader:
-    """Downloader object Fixture with ClientSession and session.get mocked."""
+) -> RutubeDownloader:
+    """
+    RutubeDownloader object Fixture with ClientSession and session.get mocked.
+    """
     get_response_mock.json.return_value = api_response_fixture
     get_response_mock.text.side_effect = (
         master_playlist_fixture,
         video_file_playlist_fixture,
     )
-    downloader = Downloader(RUTUBE_LINK, session=mocked_session)
+    downloader = RutubeDownloader(RUTUBE_LINK, session=mocked_session)
     return downloader
 
 

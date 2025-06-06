@@ -2,7 +2,7 @@ import asyncio
 from asyncio import AbstractEventLoop
 from threading import Thread
 
-from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.rutube_downloader import RutubeDownloader
 from async_rutube_downloader.ui import DownloaderUI
 
 
@@ -37,7 +37,7 @@ def main() -> None:
     """
 
     app = DownloaderUI(
-        downloader_class=Downloader,
+        downloader_class=RutubeDownloader,
         loop=loop,
     )
     """

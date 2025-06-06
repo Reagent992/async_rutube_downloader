@@ -7,7 +7,7 @@ from pathlib import Path
 import aiofiles
 from aiohttp import ClientSession
 
-from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.rutube_downloader import RutubeDownloader
 from async_rutube_downloader.settings import (
     API_RESPONSE_ERROR_MSG,
     AVAILABLE_QUALITIES,
@@ -64,7 +64,7 @@ class CLIDownloader:
         self.event_loop = event_loop if event_loop else get_or_create_loop()
         self.session = session
         self.progress_bar = create_progress_bar()
-        self.downloader: Downloader | None = None
+        self.downloader: RutubeDownloader | None = None
         self.__last_step: int = 0
         self.__download_cancelled = False
         self.__tasks: list[asyncio.Task] = []
@@ -147,7 +147,7 @@ class CLIDownloader:
         self._print_state()
 
     async def _download_single_video(self, url) -> None:
-        self.downloader = Downloader(
+        self.downloader = RutubeDownloader(
             url if url else self.cli_args.url,
             loop=self.event_loop,
             callback=self.cli_progress_callback,

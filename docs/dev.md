@@ -52,3 +52,5 @@ looks like we need swap `load()` with `loads(m3u8: str)` and download m3u8 async
 - [ ] add video thumbnail in UI
 - [ ] continue download
 - [ ] shorts/etc. support
+- [ ] something wrong with github actions build for linux(it can't download, some SSL error)
+- [ ] should probably refactor a retry decorator

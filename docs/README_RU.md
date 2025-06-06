@@ -78,11 +78,11 @@ pip install async_rutube_downloader
 
 ```python
 import asyncio
-from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.rutube_downloader import RutubeDownloader
 
 
 async def download():
-    downloader = Downloader(
+    downloader = RutubeDownloader(
         "https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/"
     )
     qualities = await downloader.fetch_video_info()
@@ -96,11 +96,11 @@ asyncio.run(download())
 
 ```python
 import asyncio
-from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.rutube_downloader import RutubeDownloader
 
 
 loop = asyncio.new_event_loop()
-downloader = Downloader(
+downloader = RutubeDownloader(
     "https://rutube.ru/video/365ae8f40a2ffd2a5901ace4db799de7/", loop
 )
 qualities = loop.run_until_complete(downloader.fetch_video_info())

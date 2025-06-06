@@ -40,7 +40,7 @@ from async_rutube_downloader.utils.validators import is_quality_valid
 logger = get_logger(__name__)
 
 
-class Downloader(DownloaderABC):
+class RutubeDownloader(DownloaderABC):
     """
     Downloads a video from Rutube using the URL
     and saves it to a file in a specified folder.

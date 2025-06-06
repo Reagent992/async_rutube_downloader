@@ -7,7 +7,7 @@ import aiofiles
 import pytest
 from m3u8 import M3U8
 
-from async_rutube_downloader.downloader import Downloader
+from async_rutube_downloader.rutube_downloader import RutubeDownloader
 from async_rutube_downloader.settings import (
     TEST_VIDEO_ID,
     URL_FOR_ID_TEMPLATE,
@@ -25,12 +25,15 @@ from async_rutube_downloader.utils.type_hints import APIResponseDict, Qualities
 from tests.conftest import RUTUBE_LINK
 from tests.utils.validators import is_valid_qualities
 
-# There is few protected methods calls, through mangled names,
-# it's not a good practice.
+# FIXME:
+# There is few private methods calls, through mangled names,
+# there should be better way to test it.
 
 
 @pytest.mark.asyncio
-async def test_download_video(downloader: Downloader, tmp_path: Path) -> None:
+async def test_download_video(
+    downloader: RutubeDownloader, tmp_path: Path
+) -> None:
     get_calls = 3
     # 3 is _get_api_response, __get_master_playlist, and __get_selected_quality
     downloader._upload_directory = tmp_path
@@ -47,13 +50,15 @@ async def test_download_video(downloader: Downloader, tmp_path: Path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_download_video_raises_error(downloader: Downloader) -> None:
+async def test_download_video_raises_error(
+    downloader: RutubeDownloader,
+) -> None:
     with pytest.raises(MasterPlaylistInitializationError):
         await downloader.download_video()
 
 
 @pytest.mark.asyncio
-async def test_select_quality(downloader: Downloader) -> None:
+async def test_select_quality(downloader: RutubeDownloader) -> None:
     qualities: Qualities = await downloader.fetch_video_info()
     first_quality = next(iter(qualities))
     assert downloader._selected_quality is None
@@ -63,7 +68,7 @@ async def test_select_quality(downloader: Downloader) -> None:
 
 @pytest.mark.asyncio
 async def test_select_quality_raise_error_master_playlist_not_initialized(
-    downloader: Downloader,
+    downloader: RutubeDownloader,
 ) -> None:
     with pytest.raises(MasterPlaylistInitializationError):
         await downloader.select_quality(FULL_HD_1080p)
@@ -82,21 +87,21 @@ async def test_select_quality_raise_error_master_playlist_not_initialized(
 )
 @pytest.mark.asyncio
 async def test_validate_selected_quality(
-    value: tuple[Any, Any], downloader: Downloader
+    value: tuple[Any, Any], downloader: RutubeDownloader
 ) -> None:
     with pytest.raises(QualityError):
         await downloader.select_quality(value)
 
 
 @pytest.mark.asyncio
-async def test_fetch_video_info(downloader: Downloader) -> None:
+async def test_fetch_video_info(downloader: RutubeDownloader) -> None:
     result = await downloader.fetch_video_info()
     assert is_valid_qualities(result)
 
 
 @pytest.mark.asyncio
 async def test_fetch_video_info_raise_error(
-    downloader: Downloader,
+    downloader: RutubeDownloader,
     get_response_mock: AsyncMock,
 ) -> None:
     # Turn off an API response for MasterPlatlist
@@ -119,30 +124,32 @@ async def test_fetch_video_info_raise_error(
     ],
 )
 def test_sanitize_video_title(
-    downloader: Downloader,
+    downloader: RutubeDownloader,
     video_title: str,
     expected: str,
     api_response_fixture: APIResponseDict,
 ) -> None:
     api_response_fixture["title"] = video_title
     assert (
-        downloader._Downloader__sanitize_video_title(api_response_fixture)  # type: ignore
+        downloader._RutubeDownloader__sanitize_video_title(  # type: ignore
+            api_response_fixture
+        )
         == expected
     )
 
 
 def test_extract_master_playlist_url(
-    api_response_fixture: APIResponseDict, downloader: Downloader
+    api_response_fixture: APIResponseDict, downloader: RutubeDownloader
 ) -> None:
     with pytest.raises(
         M3U8URLNotFoundError,
         match="M3U8 playlist URL not found in API response.",
     ):
-        downloader._Downloader__extract_master_playlist_url(  # type: ignore
+        downloader._RutubeDownloader__extract_master_playlist_url(  # type: ignore
             {"invalid_key": "invalid_value"}
         )
     assert (
-        downloader._Downloader__extract_master_playlist_url(  # type: ignore
+        downloader._RutubeDownloader__extract_master_playlist_url(  # type: ignore
             api_response_fixture
         )
         == api_response_fixture["video_balancer"]["m3u8"]
@@ -151,22 +158,24 @@ def test_extract_master_playlist_url(
 
 @pytest.mark.asyncio
 async def test_get_api_response(
-    downloader: Downloader, api_response_fixture: APIResponseDict
+    downloader: RutubeDownloader, api_response_fixture: APIResponseDict
 ) -> None:
     assert await downloader._get_api_response() == api_response_fixture
 
 
 @pytest.mark.asyncio
 async def test_create_downloader(mocked_session: AsyncMock) -> None:
-    """Create correct Downloader object."""
+    """Create correct RutubeDownloader object."""
 
     def dummy_callback(arg: int, arg2: int): ...
 
     loop = asyncio.new_event_loop()
 
-    obj = Downloader(RUTUBE_LINK, loop, dummy_callback, session=mocked_session)
+    obj = RutubeDownloader(
+        RUTUBE_LINK, loop, dummy_callback, session=mocked_session
+    )
 
-    assert isinstance(obj, Downloader)
+    assert isinstance(obj, RutubeDownloader)
     assert obj.url == RUTUBE_LINK
     assert obj._loop == loop
     assert obj._callback == dummy_callback
@@ -220,10 +229,11 @@ def test_create_downloader_with_invalid_url(
     wrong_url: str, mocked_session: AsyncMock
 ) -> None:
     """
-    Test that creating Downloader object with invalid url raises an error.
+    Test that creating RutubeDownloader
+    object with invalid url raises an error.
     """
     with pytest.raises(InvalidURLError):
-        Downloader(wrong_url, session=mocked_session)
+        RutubeDownloader(wrong_url, session=mocked_session)
 
 
 @pytest.mark.parametrize(
@@ -241,23 +251,23 @@ def test_downloader_created_with_valid_url(
     valid_url: str, mocked_session: AsyncMock
 ) -> None:
     """
-    Test that creating Downloader object with valid url
+    Test that creating RutubeDownloader object with valid url
     does not raise an error.
     """
-    assert Downloader(valid_url, session=mocked_session).url == valid_url
+    assert RutubeDownloader(valid_url, session=mocked_session).url == valid_url
 
 
 def test_downloader_created_with_id(mocked_session: AsyncMock) -> None:
     """
-    Test that creating Downloader object with valid url
+    Test that creating RutubeDownloader object with valid url
     does not raise an error.
     """
-    assert Downloader(
+    assert RutubeDownloader(
         TEST_VIDEO_ID, session=mocked_session
     ).url == URL_FOR_ID_TEMPLATE.format(TEST_VIDEO_ID)
 
 
-def test_interrupt_download(downloader: Downloader) -> None:
+def test_interrupt_download(downloader: RutubeDownloader) -> None:
     assert downloader.is_interrupted() is False
     downloader.interrupt_download()
     assert downloader.is_interrupted() is True
